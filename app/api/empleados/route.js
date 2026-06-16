@@ -21,6 +21,7 @@ export async function POST(request) {
     return Response.json({ error: error.message }, { status: 500 })
   }
 }
+
 export async function PATCH(request) {
   try {
     const { id, nombre, apellido, dni, cargo, fecha_ingreso } = await request.json()

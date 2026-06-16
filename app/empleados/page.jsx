@@ -3,6 +3,30 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
+const CARGOS = ['Carpintero', 'Administrativo', 'Vendedor', 'Producción', 'Otro']
+
+function FormularioEmpleado({ datos, setDatos, onGuardar, onCancelar, titulo, colorBoton }) {
+  return (
+    <div className="bg-white rounded-xl shadow p-6 mb-6 border-l-4 border-blue-400">
+      <h2 className="text-lg font-semibold text-gray-700 mb-4">{titulo}</h2>
+      <div className="grid grid-cols-2 gap-4">
+        <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" placeholder="Nombre" value={datos.nombre} onChange={(e) => setDatos({ ...datos, nombre: e.target.value })} />
+        <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" placeholder="Apellido" value={datos.apellido} onChange={(e) => setDatos({ ...datos, apellido: e.target.value })} />
+        <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" placeholder="DNI" value={datos.dni || ''} onChange={(e) => setDatos({ ...datos, dni: e.target.value })} />
+        <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" placeholder="Cargo" value={datos.cargo || ''} onChange={(e) => setDatos({ ...datos, cargo: e.target.value })} />
+        <div className="col-span-2">
+          <label className="text-xs text-gray-500 mb-1 block">Fecha de ingreso</label>
+          <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" type="date" value={datos.fecha_ingreso ? datos.fecha_ingreso.split('T')[0] : ''} onChange={(e) => setDatos({ ...datos, fecha_ingreso: e.target.value })} />
+        </div>
+      </div>
+      <div className="flex gap-3 mt-4">
+        <button onClick={onGuardar} className={`${colorBoton} text-white px-6 py-2 rounded-lg text-sm`}>Guardar</button>
+        <button onClick={onCancelar} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg text-sm hover:bg-gray-300">Cancelar</button>
+      </div>
+    </div>
+  )
+}
+
 export default function Empleados() {
   const [empleados, setEmpleados] = useState([])
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
@@ -40,17 +64,13 @@ export default function Empleados() {
   }
 
   async function guardarEdicion() {
-    if (!editando.nombre || !editando.apellido) {
-      setMensaje('Nombre y apellido son obligatorios.')
-      return
-    }
     const res = await fetch('http://localhost:3000/api/empleados', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editando)
     })
     if (res.ok) {
-      setMensaje('✓ Empleado modificado correctamente')
+      setMensaje('✓ Empleado actualizado correctamente')
       setEditando(null)
       cargarEmpleados()
       setTimeout(() => setMensaje(''), 3000)
@@ -70,26 +90,6 @@ export default function Empleados() {
       setTimeout(() => setMensaje(''), 3000)
     }
   }
-
-  const FormularioEmpleado = ({ datos, setDatos, onGuardar, onCancelar, titulo, colorBoton }) => (
-    <div className="bg-white rounded-xl shadow p-6 mb-6">
-      <h2 className="text-lg font-semibold text-gray-700 mb-4">{titulo}</h2>
-      <div className="grid grid-cols-2 gap-4">
-        <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" placeholder="Nombre" value={datos.nombre} onChange={(e) => setDatos({ ...datos, nombre: e.target.value })} />
-        <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" placeholder="Apellido" value={datos.apellido} onChange={(e) => setDatos({ ...datos, apellido: e.target.value })} />
-        <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" placeholder="DNI" value={datos.dni || ''} onChange={(e) => setDatos({ ...datos, dni: e.target.value })} />
-        <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" placeholder="Cargo" value={datos.cargo || ''} onChange={(e) => setDatos({ ...datos, cargo: e.target.value })} />
-        <div className="col-span-2">
-          <label className="text-xs text-gray-500 mb-1 block">Fecha de ingreso</label>
-          <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" type="date" value={datos.fecha_ingreso ? datos.fecha_ingreso.split('T')[0] : ''} onChange={(e) => setDatos({ ...datos, fecha_ingreso: e.target.value })} />
-        </div>
-      </div>
-      <div className="flex gap-3 mt-4">
-        <button onClick={onGuardar} className={`${colorBoton} text-white px-6 py-2 rounded-lg text-sm`}>Guardar</button>
-        <button onClick={onCancelar} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg text-sm hover:bg-gray-300">Cancelar</button>
-      </div>
-    </div>
-  )
 
   return (
     <div className="p-8">
@@ -143,27 +143,16 @@ export default function Empleados() {
               {e.dni && <p>DNI: {e.dni}</p>}
               {e.fecha_ingreso && <p>Ingreso: {new Date(e.fecha_ingreso).toLocaleDateString('es-AR')}</p>}
             </div>
-            <div className="flex flex-col gap-2">
-              <Link
-                href={`/empleados/${e.id}`}
-                className="bg-blue-50 text-blue-600 text-xs font-medium px-3 py-2 rounded-lg hover:bg-blue-100 text-center"
-              >
-                📋 Ver horas y liquidación
+            <div className="flex gap-2 flex-wrap">
+              <Link href={`/empleados/${e.id}`} className="bg-blue-100 text-blue-600 text-xs font-medium px-3 py-1 rounded-full hover:bg-blue-200">
+                📋 Ver horas
               </Link>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setEditando(e); setMostrarFormulario(false) }}
-                  className="flex-1 bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-lg hover:bg-yellow-200"
-                >
-                  ✏ Editar
-                </button>
-                <button
-                  onClick={() => eliminarEmpleado(e.id, e.nombre)}
-                  className="flex-1 bg-red-100 text-red-600 text-xs font-medium px-3 py-1 rounded-lg hover:bg-red-200"
-                >
-                  🗑 Eliminar
-                </button>
-              </div>
+              <button onClick={() => { setEditando(e); setMostrarFormulario(false) }} className="bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full hover:bg-yellow-200">
+                ✏ Editar
+              </button>
+              <button onClick={() => eliminarEmpleado(e.id, e.nombre)} className="bg-red-100 text-red-600 text-xs font-medium px-3 py-1 rounded-full hover:bg-red-200">
+                🗑 Eliminar
+              </button>
             </div>
           </div>
         ))}
