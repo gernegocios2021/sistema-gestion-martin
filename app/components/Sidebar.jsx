@@ -14,6 +14,8 @@ export default function Sidebar() {
     { href: '/empleados', label: 'Empleados' },
     { href: '/presupuestos', label: 'Presupuestos' },
     { href: '/facturacion', label: 'Facturación' },
+    { href: '/marcar', label: '📷 Marcar asistencia' },
+    
   ]
 
   return (
