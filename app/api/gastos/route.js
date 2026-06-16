@@ -21,3 +21,15 @@ export async function POST(request) {
     return Response.json({ error: error.message }, { status: 500 })
   }
 }
+export async function PATCH(request) {
+  try {
+    const { id, categoria, descripcion, monto, responsable } = await request.json()
+    const resultado = await pool.query(
+      'UPDATE gastos SET categoria=$1, descripcion=$2, monto=$3, responsable=$4 WHERE id=$5 RETURNING *',
+      [categoria, descripcion, monto, responsable, id]
+    )
+    return Response.json(resultado.rows[0])
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 })
+  }
+}

@@ -21,6 +21,7 @@ const CATEGORIAS = [
 export default function Gastos() {
   const [gastos, setGastos] = useState([])
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [editando, setEditando] = useState(null)
   const [nuevo, setNuevo] = useState({ categoria: '', descripcion: '', monto: '', responsable: 'Martín' })
   const [mensaje, setMensaje] = useState('')
   const [filtroMes, setFiltroMes] = useState('')
@@ -59,6 +60,30 @@ export default function Gastos() {
     }
   }
 
+  async function guardarEdicion() {
+    if (!editando.categoria || !editando.monto) {
+      setMensaje('Completá categoría y monto.')
+      return
+    }
+    const res = await fetch('http://localhost:3000/api/gastos', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: editando.id,
+        categoria: editando.categoria,
+        descripcion: editando.descripcion,
+        monto: parseFloat(editando.monto),
+        responsable: editando.responsable
+      })
+    })
+    if (res.ok) {
+      setMensaje('✓ Gasto modificado correctamente')
+      setEditando(null)
+      cargarGastos()
+      setTimeout(() => setMensaje(''), 3000)
+    }
+  }
+
   const gastosFiltrados = filtroMes
     ? gastos.filter(g => g.fecha.startsWith(filtroMes))
     : gastos
@@ -70,7 +95,7 @@ export default function Gastos() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Gastos</h1>
         <button
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
+          onClick={() => { setMostrarFormulario(!mostrarFormulario); setEditando(null) }}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"
         >
           + Registrar gasto
@@ -83,34 +108,13 @@ export default function Gastos() {
         <div className="bg-white rounded-xl shadow p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Nuevo gasto</h2>
           <div className="grid grid-cols-2 gap-4">
-            <select
-              className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white"
-              value={nuevo.categoria}
-              onChange={(e) => setNuevo({ ...nuevo, categoria: e.target.value })}
-            >
+            <select className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" value={nuevo.categoria} onChange={(e) => setNuevo({ ...nuevo, categoria: e.target.value })}>
               <option value="">Seleccioná una categoría</option>
-              {CATEGORIAS.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
+              {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <input
-              className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white"
-              placeholder="Monto"
-              type="number"
-              value={nuevo.monto}
-              onChange={(e) => setNuevo({ ...nuevo, monto: e.target.value })}
-            />
-            <input
-              className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white col-span-2"
-              placeholder="Descripción (opcional)"
-              value={nuevo.descripcion}
-              onChange={(e) => setNuevo({ ...nuevo, descripcion: e.target.value })}
-            />
-            <select
-              className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white"
-              value={nuevo.responsable}
-              onChange={(e) => setNuevo({ ...nuevo, responsable: e.target.value })}
-            >
+            <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" placeholder="Monto" type="number" value={nuevo.monto} onChange={(e) => setNuevo({ ...nuevo, monto: e.target.value })} />
+            <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white col-span-2" placeholder="Descripción (opcional)" value={nuevo.descripcion} onChange={(e) => setNuevo({ ...nuevo, descripcion: e.target.value })} />
+            <select className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" value={nuevo.responsable} onChange={(e) => setNuevo({ ...nuevo, responsable: e.target.value })}>
               <option value="Martín">Martín</option>
               <option value="Iván">Iván</option>
               <option value="Empresa">Empresa</option>
@@ -123,15 +127,33 @@ export default function Gastos() {
         </div>
       )}
 
+      {editando && (
+        <div className="bg-white rounded-xl shadow p-6 mb-6 border-l-4 border-yellow-400">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Editar gasto</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <select className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" value={editando.categoria} onChange={(e) => setEditando({ ...editando, categoria: e.target.value })}>
+              <option value="">Seleccioná una categoría</option>
+              {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" placeholder="Monto" type="number" value={editando.monto} onChange={(e) => setEditando({ ...editando, monto: e.target.value })} />
+            <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white col-span-2" placeholder="Descripción (opcional)" value={editando.descripcion || ''} onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })} />
+            <select className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white" value={editando.responsable} onChange={(e) => setEditando({ ...editando, responsable: e.target.value })}>
+              <option value="Martín">Martín</option>
+              <option value="Iván">Iván</option>
+              <option value="Empresa">Empresa</option>
+            </select>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button onClick={guardarEdicion} className="bg-yellow-500 text-white px-6 py-2 rounded-lg text-sm hover:bg-yellow-600">Guardar cambios</button>
+            <button onClick={() => setEditando(null)} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg text-sm hover:bg-gray-300">Cancelar</button>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-3">
           <label className="text-sm text-gray-600">Filtrar por mes:</label>
-          <input
-            type="month"
-            className="border rounded-lg px-3 py-1 text-sm text-gray-800 bg-white"
-            value={filtroMes}
-            onChange={(e) => setFiltroMes(e.target.value)}
-          />
+          <input type="month" className="border rounded-lg px-3 py-1 text-sm text-gray-800 bg-white" value={filtroMes} onChange={(e) => setFiltroMes(e.target.value)} />
         </div>
         <div className="bg-white rounded-xl shadow px-6 py-3">
           <span className="text-sm text-gray-500">Total: </span>
@@ -147,6 +169,7 @@ export default function Gastos() {
             <th className="text-left px-6 py-3 text-sm">Descripción</th>
             <th className="text-left px-6 py-3 text-sm">Responsable</th>
             <th className="text-left px-6 py-3 text-sm">Monto</th>
+            <th className="text-left px-6 py-3 text-sm">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -157,11 +180,19 @@ export default function Gastos() {
               <td className="px-6 py-4 text-sm text-gray-500">{g.descripcion || '-'}</td>
               <td className="px-6 py-4 text-sm text-gray-500">{g.responsable}</td>
               <td className="px-6 py-4 text-sm font-medium text-red-600">${parseFloat(g.monto).toLocaleString('es-AR')}</td>
+              <td className="px-6 py-4">
+                <button
+                  onClick={() => { setEditando(g); setMostrarFormulario(false) }}
+                  className="bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full hover:bg-yellow-200"
+                >
+                  ✏ Editar
+                </button>
+              </td>
             </tr>
           ))}
           {gastosFiltrados.length === 0 && (
             <tr>
-              <td colSpan={5} className="px-6 py-8 text-center text-gray-400 text-sm">No hay gastos registrados</td>
+              <td colSpan={6} className="px-6 py-8 text-center text-gray-400 text-sm">No hay gastos registrados</td>
             </tr>
           )}
         </tbody>
