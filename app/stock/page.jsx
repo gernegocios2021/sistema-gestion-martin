@@ -40,13 +40,7 @@ export default function Stock() {
   }
 
   async function reponerStock() {
-    console.log('reponiendo:', reponiendo)
-    console.log('cantidad:', cantidadReponer)
-    if (!cantidadReponer || cantidadReponer <= 0) {
-      console.log('cantidad inválida, saliendo')
-      return
-    }
-    console.log('enviando PATCH...')
+    if (!cantidadReponer || cantidadReponer <= 0) return
     const res = await fetch('http://localhost:3000/api/products', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -55,7 +49,6 @@ export default function Stock() {
         cantidad: parseInt(cantidadReponer)
       })
     })
-    console.log('respuesta status:', res.status)
     if (res.ok) {
       setMensaje(`✓ Se agregaron ${cantidadReponer} unidades a ${reponiendo.nombre}`)
       setReponiendo(null)
@@ -65,16 +58,33 @@ export default function Stock() {
     }
   }
 
+  async function enviarAlerta() {
+    const res = await fetch('http://localhost:3000/api/alertas', {
+      method: 'POST'
+    })
+    const data = await res.json()
+    setMensaje(data.mensaje || data.error)
+    setTimeout(() => setMensaje(''), 4000)
+  }
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Stock / Inventario</h1>
-        <button
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"
-        >
-          + Agregar producto
-        </button>
+        <div className="flex gap-3">
+          <button
+  onClick={enviarAlerta}
+  style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}
+>
+  🔔 Enviar alerta stock
+</button>
+          <button
+            onClick={() => setMostrarFormulario(!mostrarFormulario)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"
+          >
+            + Agregar producto
+          </button>
+        </div>
       </div>
 
       {mensaje && <p className="mb-4 text-green-600 text-sm font-medium">{mensaje}</p>}
