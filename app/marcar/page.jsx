@@ -11,7 +11,7 @@ export default function Marcar() {
   const intervalRef = useRef(null)
 
   useEffect(() => {
-    fetch('http:///api/empleados')
+    fetch('/api/empleados')
       .then(r => r.json())
       .then(data => setEmpleados(data))
 
@@ -19,10 +19,13 @@ export default function Marcar() {
   }, [])
 
   async function obtenerToken() {
-    const res = await fetch('http:///api/marcar')
+    const res = await fetch('/api/marcar')
     const data = await res.json()
     setToken(data.token)
-    setUrlQR(`http://192.168.100.219:3000/confirmar?token=${data.token}`)
+    
+    // Usar window.location.origin para la URL correcta en cualquier ambiente
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    setUrlQR(`${baseUrl}/confirmar?token=${data.token}`)
     setSegundos(30)
   }
 
