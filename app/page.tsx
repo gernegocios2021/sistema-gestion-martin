@@ -1,6 +1,4 @@
 'use client'
-// Force rebuild
-import { useState, useEffect } from 'react'
 
 import { useState, useEffect } from 'react'
 import TarjetaResumen from './components/TarjetaResumen'
