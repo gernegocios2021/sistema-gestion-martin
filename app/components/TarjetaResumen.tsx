@@ -1,6 +1,6 @@
 interface TarjetaResumenProps {
   titulo: string
-  valor: string | number
+  valor: any
   color: string
 }
 
