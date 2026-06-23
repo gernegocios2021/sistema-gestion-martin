@@ -9,14 +9,14 @@ export default function Confirmar({ searchParams }) {
   const [cargando, setCargando] = useState(false)
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/empleados')
+    fetch('http:///api/empleados')
       .then(r => r.json())
       .then(data => setEmpleados(data))
   }, [])
 
   async function marcar(empleado_id) {
     setCargando(true)
-    const res = await fetch('http://localhost:3000/api/marcar', {
+    const res = await fetch('http:///api/marcar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ empleado_id, token })

@@ -15,8 +15,8 @@ export default function Ventas() {
 
   async function cargarDatos() {
     const [prod, vent] = await Promise.all([
-      fetch('http://localhost:3000/api/products').then(r => r.json()),
-      fetch('http://localhost:3000/api/ventas').then(r => r.json())
+      fetch('http:///api/products').then(r => r.json()),
+      fetch('http:///api/ventas').then(r => r.json())
     ])
     setProductos(prod)
     setVentas(vent)
@@ -45,7 +45,7 @@ export default function Ventas() {
       setMensaje('Completá todos los campos antes de guardar.')
       return
     }
-    const res = await fetch('http://localhost:3000/api/ventas', {
+    const res = await fetch('http:///api/ventas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

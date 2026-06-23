@@ -11,7 +11,7 @@ export default function Marcar() {
   const intervalRef = useRef(null)
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/empleados')
+    fetch('http:///api/empleados')
       .then(r => r.json())
       .then(data => setEmpleados(data))
 
@@ -19,7 +19,7 @@ export default function Marcar() {
   }, [])
 
   async function obtenerToken() {
-    const res = await fetch('http://localhost:3000/api/marcar')
+    const res = await fetch('http:///api/marcar')
     const data = await res.json()
     setToken(data.token)
     setUrlQR(`http://192.168.100.219:3000/confirmar?token=${data.token}`)

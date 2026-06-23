@@ -25,7 +25,7 @@ export default function Presupuestos() {
   }, [])
 
   async function cargarPresupuestos() {
-    const res = await fetch('http://localhost:3000/api/presupuestos')
+    const res = await fetch('http:///api/presupuestos')
     const data = await res.json()
     setPresupuestos(data)
   }
@@ -35,7 +35,7 @@ export default function Presupuestos() {
       setMensaje('Cliente y monto son obligatorios.')
       return
     }
-    const res = await fetch('http://localhost:3000/api/presupuestos', {
+    const res = await fetch('http:///api/presupuestos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -55,7 +55,7 @@ export default function Presupuestos() {
   }
 
   async function cambiarEstado(id, estado) {
-    const res = await fetch('http://localhost:3000/api/presupuestos', {
+    const res = await fetch('http:///api/presupuestos', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, estado, observaciones: '' })

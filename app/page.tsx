@@ -12,11 +12,10 @@ export default function Home() {
   })
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/dashboard')
+    fetch('/api/dashboard')
       .then(r => r.json())
       .then(data => setDatos(data))
   }, [])
-
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
