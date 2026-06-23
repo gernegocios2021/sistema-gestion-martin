@@ -1,4 +1,5 @@
 import { Geist } from 'next/font/google'
+import { ReactNode } from 'react'
 import Sidebar from './components/Sidebar'
 import './globals.css'
 
@@ -9,7 +10,7 @@ export const metadata = {
   description: 'Sistema de gestión integral',
 }
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
       <body className={geist.className}>
