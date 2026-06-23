@@ -1,10 +1,4 @@
-interface TarjetaResumenProps {
-  titulo: string
-  valor: any
-  color: string
-}
-
-export default function TarjetaResumen({ titulo, valor, color }: TarjetaResumenProps) {
+export default function TarjetaResumen({ titulo, valor, color }) {
   return (
     <div className="bg-white rounded-xl p-6 shadow">
       <p className="text-sm text-gray-500">{titulo}</p>
