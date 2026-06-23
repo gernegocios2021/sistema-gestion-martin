@@ -1,10 +1,18 @@
 import pool from '../../db'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function POST() {
   try {
+    // Validar que existe la API key
+    if (!process.env.RESEND_API_KEY) {
+      return Response.json({ 
+        ok: false, 
+        mensaje: 'API key de Resend no configurada'
+      }, { status: 500 })
+    }
+
+    const resend = new Resend(process.env.RESEND_API_KEY)
+
     // Buscar productos con stock bajo
     const resultado = await pool.query(`
       SELECT nombre, stock_actual, stock_minimo, unidad
@@ -26,7 +34,7 @@ export async function POST() {
 
     await resend.emails.send({
       from: 'Sistema Martín <onboarding@resend.dev>',
-      to: 'gernegocios2021@gmail.com', // reemplazá con el email de Martín
+      to: 'gernegocios2021@gmail.com',
       subject: `⚠️ Alerta de stock bajo — ${productosConStockBajo.length} producto(s)`,
       html: `
         <h2>⚠️ Alerta de stock bajo</h2>
