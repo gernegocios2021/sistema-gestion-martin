@@ -13,6 +13,7 @@ export default function Sidebar() {
     { href: '/gastos', label: 'Gastos' },
     { href: '/empleados', label: 'Empleados' },
     { href: '/presupuestos', label: 'Presupuestos' },
+    { href: '/lista-materiales', label: 'Materiales por obra' },
     { href: '/facturacion', label: 'Facturación' },
     { href: '/marcar', label: '📷 Marcar asistencia' },
     
