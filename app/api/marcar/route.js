@@ -1,7 +1,7 @@
 import pool from '../../db'
 import jwt from 'jsonwebtoken'
 
-const SECRET = 'sistema_martin_qr_2026'
+const SECRET = process.env.JWT_SECRET || 'sistema_martin_qr_2026'
 
 export async function GET() {
   // Genera un token válido por 30 segundos
@@ -11,14 +11,24 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const { empleado_id, token } = await request.json()
+    const { device_id, token } = await request.json()
 
-    // Verificar que el token sea válido
+    // Verificar que el token del QR sea válido (que esté presente en la fábrica)
     try {
       jwt.verify(token, SECRET)
     } catch (e) {
       return Response.json({ error: 'QR vencido, escaneá de nuevo' }, { status: 401 })
     }
+
+    // El servidor decide de quién es este celular (no lo elige el usuario)
+    const disp = await pool.query(
+      'SELECT empleado_id FROM dispositivos WHERE device_id = $1',
+      [device_id]
+    )
+    if (disp.rows.length === 0) {
+      return Response.json({ error: 'Este celular no está vinculado' }, { status: 403 })
+    }
+    const empleado_id = disp.rows[0].empleado_id
 
     const hoy = new Date().toISOString().split('T')[0]
     const horaActual = new Date().toTimeString().split(' ')[0].slice(0, 5)

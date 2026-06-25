@@ -39,7 +39,7 @@ export default function Empleados() {
   }, [])
 
   async function cargarEmpleados() {
-    const res = await fetch('http:///api/empleados')
+    const res = await fetch('/api/empleados')
     const data = await res.json()
     setEmpleados(data)
   }
@@ -49,7 +49,7 @@ export default function Empleados() {
       setMensaje('Nombre y apellido son obligatorios.')
       return
     }
-    const res = await fetch('http:///api/empleados', {
+    const res = await fetch('/api/empleados', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(nuevo)
@@ -64,7 +64,7 @@ export default function Empleados() {
   }
 
   async function guardarEdicion() {
-    const res = await fetch('http:///api/empleados', {
+    const res = await fetch('/api/empleados', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editando)
@@ -79,7 +79,7 @@ export default function Empleados() {
 
   async function eliminarEmpleado(id, nombre) {
     if (!confirm(`¿Seguro que querés eliminar a ${nombre}?`)) return
-    const res = await fetch('http:///api/empleados', {
+    const res = await fetch('/api/empleados', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id })

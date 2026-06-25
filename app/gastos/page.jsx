@@ -31,7 +31,7 @@ export default function Gastos() {
   }, [])
 
   async function cargarGastos() {
-    const res = await fetch('http:///api/gastos')
+    const res = await fetch('/api/gastos')
     const data = await res.json()
     setGastos(data)
   }
@@ -41,7 +41,7 @@ export default function Gastos() {
       setMensaje('Completá categoría y monto.')
       return
     }
-    const res = await fetch('http:///api/gastos', {
+    const res = await fetch('/api/gastos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -65,7 +65,7 @@ export default function Gastos() {
       setMensaje('Completá categoría y monto.')
       return
     }
-    const res = await fetch('http:///api/gastos', {
+    const res = await fetch('/api/gastos', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

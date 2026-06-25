@@ -15,13 +15,13 @@ export default function Stock() {
   }, [])
 
   async function cargarProductos() {
-    const res = await fetch('http:///api/products')
+    const res = await fetch('/api/products')
     const data = await res.json()
     setProductos(data)
   }
 
   async function agregarProducto() {
-    const res = await fetch('http:///api/products', {
+    const res = await fetch('/api/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -41,7 +41,7 @@ export default function Stock() {
 
   async function reponerStock() {
     if (!cantidadReponer || cantidadReponer <= 0) return
-    const res = await fetch('http:///api/products', {
+    const res = await fetch('/api/products', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -59,7 +59,7 @@ export default function Stock() {
   }
 
   async function enviarAlerta() {
-    const res = await fetch('http:///api/alertas', {
+    const res = await fetch('/api/alertas', {
       method: 'POST'
     })
     const data = await res.json()

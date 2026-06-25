@@ -17,8 +17,8 @@ export default function HorasEmpleado({ params }) {
 
   async function cargarDatos() {
     const [emp, asis] = await Promise.all([
-      fetch(`http:///api/empleados/${id}`).then(r => r.json()),
-      fetch(`http:///api/asistencia?empleado_id=${id}`).then(r => r.json())
+      fetch(`/api/empleados/${id}`).then(r => r.json()),
+      fetch(`/api/asistencia?empleado_id=${id}`).then(r => r.json())
     ])
     setEmpleado(emp)
     setAsistencia(asis)
@@ -29,7 +29,7 @@ export default function HorasEmpleado({ params }) {
       setMensaje('Completá todos los campos.')
       return
     }
-    const res = await fetch('http:///api/asistencia', {
+    const res = await fetch('/api/asistencia', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
