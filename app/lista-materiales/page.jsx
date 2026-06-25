@@ -1,15 +1,10 @@
 "use client";
 
 // Pantalla: Lista de materiales por obra
-// Ubicación en el proyecto:  app/lista-materiales/page.jsx
-//
-// El usuario sube el Word de OP 2.1 y ve los materiales consolidados de toda la obra.
-// Primera versión simple: solo materiales agrupados por código. La separación de
-// vidrios (cortar vs. pedir) y la conversión a barras las agregamos en el próximo paso.
+// Ubicación: app/lista-materiales/page.jsx
 
 import { useState } from "react";
 
-// Pequeño helper para mostrar números con coma decimal (formato argentino)
 function num(n, decimales = 2) {
   return Number(n).toLocaleString("es-AR", {
     minimumFractionDigits: 0,
@@ -33,7 +28,6 @@ export default function ListaMaterialesPage() {
       const formData = new FormData();
       formData.append("archivo", archivo);
 
-      // Ruta relativa (importante para que funcione también en producción)
       const res = await fetch("/api/op21/parse", {
         method: "POST",
         body: formData,
@@ -54,11 +48,11 @@ export default function ListaMaterialesPage() {
     }
   }
 
-  // Separamos los materiales por tipo para mostrarlos en tablas distintas
   const perfiles = resultado?.materiales.filter((m) => m.tipo === "perfil") || [];
-  const vidrios = resultado?.materiales.filter((m) => m.tipo === "vidrio") || [];
   const camaras = resultado?.materiales.filter((m) => m.tipo === "camara") || [];
   const accesorios = resultado?.materiales.filter((m) => m.tipo === "accesorio") || [];
+  const vidriosACortar = resultado?.vidriosACortar || [];
+  const vidriosAPedir = resultado?.vidriosAPedir || [];
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -68,21 +62,20 @@ export default function ListaMaterialesPage() {
         consolida todos los materiales de la obra en una sola lista.
       </p>
 
-      {/* Zona de carga */}
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-6 bg-gray-50">
-        <input
-          type="file"
-          accept=".docx"
-          onChange={(e) => {
-            setArchivo(e.target.files?.[0] || null);
-            setResultado(null);
-            setError(null);
-          }}
-          className="block w-full text-sm text-gray-600
-            file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0
-            file:text-sm file:font-semibold file:bg-blue-600 file:text-white
-            hover:file:bg-blue-700 file:cursor-pointer cursor-pointer"
-        />
+        <label className="inline-block px-5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 cursor-pointer">
+          Seleccionar archivo Word
+          <input
+            type="file"
+            accept=".docx"
+            onChange={(e) => {
+              setArchivo(e.target.files?.[0] || null);
+              setResultado(null);
+              setError(null);
+            }}
+            className="hidden"
+          />
+        </label>
 
         {archivo && (
           <p className="mt-3 text-sm text-gray-600">
@@ -90,27 +83,25 @@ export default function ListaMaterialesPage() {
           </p>
         )}
 
-        <button
-          onClick={procesar}
-          disabled={!archivo || cargando}
-          className="mt-4 px-5 py-2 rounded-md bg-blue-600 text-white font-medium
-            hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-        >
-          {cargando ? "Procesando..." : "Procesar archivo"}
-        </button>
+        <div>
+          <button
+            onClick={procesar}
+            disabled={!archivo || cargando}
+            className="mt-4 px-5 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            {cargando ? "Procesando..." : "Procesar archivo"}
+          </button>
+        </div>
       </div>
 
-      {/* Error */}
       {error && (
         <div className="mb-6 p-4 rounded-md bg-red-50 border border-red-200 text-red-700">
           {error}
         </div>
       )}
 
-      {/* Resultado */}
       {resultado && (
         <div className="space-y-8">
-          {/* Datos de la orden */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <DatoOrden etiqueta="Cliente" valor={resultado.orden.cliente} />
             <DatoOrden etiqueta="N° de orden" valor={resultado.orden.numero} />
@@ -118,15 +109,13 @@ export default function ListaMaterialesPage() {
             <DatoOrden etiqueta="Plazo de entrega" valor={resultado.orden.plazoEntrega} />
           </div>
 
-          {/* Resumen */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Tarjeta etiqueta="Aberturas" valor={resultado.resumen.aberturas} />
             <Tarjeta etiqueta="Perfiles (metros)" valor={num(resultado.resumen.perfilesMetrosTotales)} />
             <Tarjeta etiqueta="Barras a comprar (6 m)" valor={resultado.resumen.perfilesBarrasTotales} />
-            <Tarjeta etiqueta="Vidrios (m²)" valor={num(resultado.resumen.vidriosM2Totales)} />
+            <Tarjeta etiqueta="Vidrios (m²)" valor={num(resultado.resumen.vidriosM2ACortar + resultado.resumen.vidriosM2APedir)} />
           </div>
 
-          {/* Perfiles */}
           {perfiles.length > 0 && (
             <Seccion titulo="Perfiles">
               <Tabla columnas={["Código", "Descripción", "Piezas", "Metros totales", "Barras (6 m)"]}>
@@ -143,11 +132,10 @@ export default function ListaMaterialesPage() {
             </Seccion>
           )}
 
-          {/* Vidrios */}
-          {vidrios.length > 0 && (
-            <Seccion titulo="Vidrios">
+          {vidriosACortar.length > 0 && (
+            <Seccion titulo="Vidrios — Cortamos nosotros (float simple)">
               <Tabla columnas={["Código", "Descripción", "Paños", "Superficie"]}>
-                {vidrios.map((m) => (
+                {vidriosACortar.map((m) => (
                   <tr key={m.codigo} className="border-t border-gray-100">
                     <Td className="font-mono">{m.codigo}</Td>
                     <Td>{m.descripcion}</Td>
@@ -159,7 +147,21 @@ export default function ListaMaterialesPage() {
             </Seccion>
           )}
 
-          {/* Cámara / separadores */}
+          {vidriosAPedir.length > 0 && (
+            <Seccion titulo="Vidrios — Pedir a fábrica (DVH / templados)">
+              <Tabla columnas={["Código", "Descripción", "Paños", "Superficie"]}>
+                {vidriosAPedir.map((m) => (
+                  <tr key={m.codigo} className="border-t border-gray-100">
+                    <Td className="font-mono">{m.codigo}</Td>
+                    <Td>{m.descripcion}</Td>
+                    <Td className="text-right">{m.panos}</Td>
+                    <Td className="text-right">{num(m.m2Total)} m²</Td>
+                  </tr>
+                ))}
+              </Tabla>
+            </Seccion>
+          )}
+
           {camaras.length > 0 && (
             <Seccion titulo="Cámara (separador DVH)">
               <Tabla columnas={["Código", "Descripción", "Metros lineales"]}>
@@ -174,7 +176,6 @@ export default function ListaMaterialesPage() {
             </Seccion>
           )}
 
-          {/* Accesorios */}
           {accesorios.length > 0 && (
             <Seccion titulo="Accesorios y burletes">
               <Tabla columnas={["Código", "Descripción", "Cantidad"]}>
@@ -193,8 +194,6 @@ export default function ListaMaterialesPage() {
     </div>
   );
 }
-
-// ---------- componentes auxiliares (en el mismo archivo para simplificar) ----------
 
 function DatoOrden({ etiqueta, valor }) {
   return (
@@ -231,10 +230,7 @@ function Tabla({ columnas, children }) {
       <thead>
         <tr className="bg-gray-50 text-gray-500">
           {columnas.map((c, i) => (
-            <th
-              key={c}
-              className={`px-4 py-2 font-medium ${i >= 2 ? "text-right" : "text-left"}`}
-            >
+            <th key={c} className={`px-4 py-2 font-medium ${i >= 2 ? "text-right" : "text-left"}`}>
               {c}
             </th>
           ))}
