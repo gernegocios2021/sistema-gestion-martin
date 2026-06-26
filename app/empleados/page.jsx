@@ -91,6 +91,27 @@ export default function Empleados() {
     }
   }
 
+  async function desvincularEmpleado(id, nombre) {
+    if (!confirm(`¿Desvincular el celular de ${nombre}?\n\nLa próxima vez que escanee el QR tendrá que vincular su celular de nuevo (con la clave del encargado). Útil si cambió de teléfono o renunció.`)) return
+    const res = await fetch('/api/desvincular', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ empleado_id: id })
+    })
+    const data = await res.json()
+    if (res.ok) {
+      if (data.borrados > 0) {
+        setMensaje(`✓ Celular de ${nombre} desvinculado`)
+      } else {
+        setMensaje(`${nombre} no tenía ningún celular vinculado`)
+      }
+      setTimeout(() => setMensaje(''), 4000)
+    } else {
+      setMensaje(data.error || 'No se pudo desvincular')
+      setTimeout(() => setMensaje(''), 4000)
+    }
+  }
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
@@ -149,6 +170,9 @@ export default function Empleados() {
               </Link>
               <button onClick={() => { setEditando(e); setMostrarFormulario(false) }} className="bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full hover:bg-yellow-200">
                 ✏ Editar
+              </button>
+              <button onClick={() => desvincularEmpleado(e.id, e.nombre)} className="bg-orange-100 text-orange-700 text-xs font-medium px-3 py-1 rounded-full hover:bg-orange-200">
+                📱 Desvincular
               </button>
               <button onClick={() => eliminarEmpleado(e.id, e.nombre)} className="bg-red-100 text-red-600 text-xs font-medium px-3 py-1 rounded-full hover:bg-red-200">
                 🗑 Eliminar
