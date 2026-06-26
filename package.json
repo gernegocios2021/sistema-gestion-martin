@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "html5-qrcode": "^2.3.8",
+    "jose": "^6.2.3",
     "jsonwebtoken": "^9.0.3",
     "jszip": "^3.10.1",
     "mammoth": "^1.12.0",

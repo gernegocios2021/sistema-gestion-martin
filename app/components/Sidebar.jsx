@@ -1,17 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 // Páginas donde NO se muestra el menú lateral (pantallas limpias).
-const RUTAS_SIN_MENU = ['/marcar', '/confirmar']
+const RUTAS_SIN_MENU = ['/marcar', '/confirmar', '/login']
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [abierto, setAbierto] = useState(false)
 
-  // En pantallas de marcación no se dibuja el menú.
+  // En pantallas de marcación y login no se dibuja el menú.
   if (RUTAS_SIN_MENU.includes(pathname)) {
     return null
   }
@@ -26,7 +27,14 @@ export default function Sidebar() {
     { href: '/lista-materiales', label: 'Materiales por obra' },
     { href: '/facturacion', label: 'Facturación' },
     { href: '/marcar', label: '📷 Marcar asistencia' },
+    { href: '/cambiar-password', label: '🔑 Mi contraseña' },
   ]
+
+  async function cerrarSesion() {
+    await fetch('/api/logout', { method: 'POST' })
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <>
@@ -50,13 +58,12 @@ export default function Sidebar() {
         />
       )}
 
-      {/* El menú lateral.
-          - En celular: oculto por defecto, aparece deslizando cuando 'abierto'.
-          - En escritorio (md y más): siempre visible, fijo a la izquierda. */}
+      {/* El menú lateral. */}
       <aside
         className={`
           bg-gray-800 text-white p-6 w-56 min-h-screen
           fixed top-0 left-0 z-50 transform transition-transform duration-200
+          flex flex-col
           ${abierto ? 'translate-x-0' : '-translate-x-full'}
           md:static md:translate-x-0 md:z-auto
         `}
@@ -72,6 +79,7 @@ export default function Sidebar() {
             ✕
           </button>
         </div>
+
         <nav className="flex flex-col gap-2">
           {links.map((link) => (
             <Link
@@ -88,6 +96,14 @@ export default function Sidebar() {
             </Link>
           ))}
         </nav>
+
+        {/* Botón de cerrar sesión, al pie del menú */}
+        <button
+          onClick={cerrarSesion}
+          className="mt-auto rounded-lg px-4 py-2 text-sm text-left text-gray-300 hover:bg-gray-700 transition-colors"
+        >
+          🚪 Cerrar sesión
+        </button>
       </aside>
     </>
   )
