@@ -3,9 +3,27 @@ import jwt from 'jsonwebtoken'
 
 const SECRET = process.env.JWT_SECRET || 'sistema_martin_qr_2026'
 
+// Devuelve la fecha y hora actual en la zona horaria de Argentina (Córdoba),
+// sin importar dónde esté el servidor (Railway está en EE.UU. / UTC).
+function fechaYHoraArgentina() {
+  const ahora = new Date()
+  // Formateamos la hora directamente en la zona de Argentina
+  const fecha = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Cordoba',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(ahora) // formato YYYY-MM-DD
+
+  const hora = new Intl.DateTimeFormat('es-AR', {
+    timeZone: 'America/Argentina/Cordoba',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(ahora) // formato HH:MM
+
+  return { fecha, hora }
+}
+
 export async function GET() {
-  // Genera un token válido por 30 segundos
-  const token = jwt.sign({ ts: Date.now() }, SECRET, { expiresIn: '30s' })
+  // Genera un token válido por 60 segundos
+  const token = jwt.sign({ ts: Date.now() }, SECRET, { expiresIn: '60s' })
   return Response.json({ token })
 }
 
@@ -30,8 +48,8 @@ export async function POST(request) {
     }
     const empleado_id = disp.rows[0].empleado_id
 
-    const hoy = new Date().toISOString().split('T')[0]
-    const horaActual = new Date().toTimeString().split(' ')[0].slice(0, 5)
+    // Fecha y hora en zona horaria de Argentina
+    const { fecha: hoy, hora: horaActual } = fechaYHoraArgentina()
 
     const registro = await pool.query(
       'SELECT * FROM asistencia WHERE empleado_id = $1 AND fecha = $2',
