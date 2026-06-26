@@ -67,16 +67,16 @@ export default function Ventas() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Ventas</h1>
 
-      <div className="bg-white rounded-xl shadow p-6 mb-8">
+      <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-8">
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Nueva venta</h2>
 
         {items.map((item, index) => (
-          <div key={index} className="grid grid-cols-4 gap-3 mb-3">
+          <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4 sm:mb-3 pb-4 sm:pb-0 border-b sm:border-b-0 border-gray-100">
             <select
-              className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white col-span-2"
+              className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white sm:col-span-2"
               value={item.producto_id}
               onChange={(e) => actualizarItem(index, 'producto_id', e.target.value)}
             >
@@ -94,7 +94,7 @@ export default function Ventas() {
             />
             <div className="flex gap-2">
               <input
-                className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white flex-1"
+                className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white flex-1 min-w-0"
                 type="number"
                 placeholder="Precio unitario"
                 value={item.precio_unitario}
@@ -118,7 +118,7 @@ export default function Ventas() {
           onChange={(e) => setObservaciones(e.target.value)}
         />
 
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <p className="text-lg font-bold text-gray-800">
             Total: <span className="text-blue-600">${total.toFixed(2)}</span>
           </p>
@@ -131,31 +131,33 @@ export default function Ventas() {
       </div>
 
       <h2 className="text-lg font-semibold text-gray-700 mb-4">Historial de ventas</h2>
-      <table className="w-full bg-white rounded-xl shadow overflow-hidden">
-        <thead className="bg-gray-800 text-white">
-          <tr>
-            <th className="text-left px-6 py-3 text-sm">ID</th>
-            <th className="text-left px-6 py-3 text-sm">Fecha</th>
-            <th className="text-left px-6 py-3 text-sm">Total</th>
-            <th className="text-left px-6 py-3 text-sm">Observaciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ventas.map((v) => (
-            <tr key={v.id} className="border-t border-gray-100 hover:bg-gray-50">
-              <td className="px-6 py-4 text-sm text-gray-800">#{v.id}</td>
-              <td className="px-6 py-4 text-sm text-gray-500">{new Date(v.fecha).toLocaleDateString('es-AR')}</td>
-              <td className="px-6 py-4 text-sm font-medium text-green-600">${parseFloat(v.total).toFixed(2)}</td>
-              <td className="px-6 py-4 text-sm text-gray-500">{v.observaciones || '-'}</td>
-            </tr>
-          ))}
-          {ventas.length === 0 && (
+      <div className="overflow-x-auto bg-white rounded-xl shadow">
+        <table className="w-full min-w-[500px]">
+          <thead className="bg-gray-800 text-white">
             <tr>
-              <td colSpan={4} className="px-6 py-8 text-center text-gray-400 text-sm">No hay ventas registradas todavía</td>
+              <th className="text-left px-6 py-3 text-sm">ID</th>
+              <th className="text-left px-6 py-3 text-sm">Fecha</th>
+              <th className="text-left px-6 py-3 text-sm">Total</th>
+              <th className="text-left px-6 py-3 text-sm">Observaciones</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {ventas.map((v) => (
+              <tr key={v.id} className="border-t border-gray-100 hover:bg-gray-50">
+                <td className="px-6 py-4 text-sm text-gray-800">#{v.id}</td>
+                <td className="px-6 py-4 text-sm text-gray-500">{new Date(v.fecha).toLocaleDateString('es-AR')}</td>
+                <td className="px-6 py-4 text-sm font-medium text-green-600">${parseFloat(v.total).toFixed(2)}</td>
+                <td className="px-6 py-4 text-sm text-gray-500">{v.observaciones || '-'}</td>
+              </tr>
+            ))}
+            {ventas.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-6 py-8 text-center text-gray-400 text-sm">No hay ventas registradas todavía</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

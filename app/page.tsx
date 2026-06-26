@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <TarjetaResumen titulo="Ventas del día" valor={`$${parseFloat(datos.ventas_dia).toLocaleString('es-AR')}`} color="text-blue-600" />
         <TarjetaResumen titulo="Productos con stock bajo" valor={`${datos.stock_bajo}`} color="text-red-500" />
         <TarjetaResumen titulo="Presupuestos pendientes" valor={`${datos.presupuestos_pendientes}`} color="text-yellow-500" />

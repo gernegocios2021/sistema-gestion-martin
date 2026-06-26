@@ -2,15 +2,16 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 
 // Páginas donde NO se muestra el menú lateral (pantallas limpias).
-// Son las de marcación: el QR de la empresa y la confirmación del empleado.
 const RUTAS_SIN_MENU = ['/marcar', '/confirmar']
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const [abierto, setAbierto] = useState(false)
 
-  // Si estamos en una pantalla de marcación, no dibujamos el menú.
+  // En pantallas de marcación no se dibuja el menú.
   if (RUTAS_SIN_MENU.includes(pathname)) {
     return null
   }
@@ -28,23 +29,66 @@ export default function Sidebar() {
   ]
 
   return (
-    <aside className="w-56 min-h-screen bg-gray-800 text-white p-6">
-      <h2 className="text-lg font-bold mb-8">Sistema Martín</h2>
-      <nav className="flex flex-col gap-2">
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={`rounded-lg px-4 py-2 text-sm transition-colors ${
-              pathname === link.href
-                ? 'bg-blue-600 text-white font-medium'
-                : 'text-gray-300 hover:bg-gray-700'
-            }`}
+    <>
+      {/* Barra superior solo en celular: título + botón hamburguesa */}
+      <div className="md:hidden flex items-center justify-between bg-gray-800 text-white px-4 py-3">
+        <h2 className="text-lg font-bold">Sistema Martín</h2>
+        <button
+          onClick={() => setAbierto(true)}
+          className="text-2xl leading-none"
+          aria-label="Abrir menú"
+        >
+          ☰
+        </button>
+      </div>
+
+      {/* Fondo oscuro detrás del menú abierto (solo celular) */}
+      {abierto && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setAbierto(false)}
+        />
+      )}
+
+      {/* El menú lateral.
+          - En celular: oculto por defecto, aparece deslizando cuando 'abierto'.
+          - En escritorio (md y más): siempre visible, fijo a la izquierda. */}
+      <aside
+        className={`
+          bg-gray-800 text-white p-6 w-56 min-h-screen
+          fixed top-0 left-0 z-50 transform transition-transform duration-200
+          ${abierto ? 'translate-x-0' : '-translate-x-full'}
+          md:static md:translate-x-0 md:z-auto
+        `}
+      >
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-lg font-bold">Sistema Martín</h2>
+          {/* Botón cerrar, solo en celular */}
+          <button
+            onClick={() => setAbierto(false)}
+            className="md:hidden text-2xl leading-none"
+            aria-label="Cerrar menú"
           >
-            {link.label}
-          </Link>
-        ))}
-      </nav>
-    </aside>
+            ✕
+          </button>
+        </div>
+        <nav className="flex flex-col gap-2">
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setAbierto(false)}
+              className={`rounded-lg px-4 py-2 text-sm transition-colors ${
+                pathname === link.href
+                  ? 'bg-blue-600 text-white font-medium'
+                  : 'text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+    </>
   )
 }

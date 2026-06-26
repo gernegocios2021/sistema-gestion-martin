@@ -14,9 +14,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
       <body className={geist.className}>
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="md:flex min-h-screen bg-gray-100">
           <Sidebar />
-          <main className="flex-1">
+          <main className="flex-1 min-w-0">
             {children}
           </main>
         </div>

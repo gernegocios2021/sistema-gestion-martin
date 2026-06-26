@@ -68,10 +68,10 @@ export default function Stock() {
   }
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 sm:p-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Stock / Inventario</h1>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <button
   onClick={enviarAlerta}
   style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}
@@ -127,7 +127,8 @@ export default function Stock() {
         </div>
       )}
 
-      <table className="w-full bg-white rounded-xl shadow overflow-hidden">
+      <div className="overflow-x-auto bg-white rounded-xl shadow">
+      <table className="w-full min-w-[700px]">
         <thead className="bg-gray-800 text-white">
           <tr>
             <th className="text-left px-6 py-3 text-sm">Producto</th>
@@ -168,6 +169,7 @@ export default function Stock() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
