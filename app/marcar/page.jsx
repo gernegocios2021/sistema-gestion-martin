@@ -3,18 +3,15 @@
 import { useState, useEffect, useRef } from 'react'
 import QRCode from 'react-qr-code'
 
+const DURACION = 60  // segundos que dura el QR (debe coincidir con el token)
+
 export default function Marcar() {
   const [token, setToken] = useState(null)
-  const [empleados, setEmpleados] = useState([])
-  const [segundos, setSegundos] = useState(30)
+  const [segundos, setSegundos] = useState(DURACION)
   const [urlQR, setUrlQR] = useState(null)
   const intervalRef = useRef(null)
 
   useEffect(() => {
-    fetch('/api/empleados')
-      .then(r => r.json())
-      .then(data => setEmpleados(data))
-
     obtenerToken()
   }, [])
 
@@ -22,11 +19,11 @@ export default function Marcar() {
     const res = await fetch('/api/marcar')
     const data = await res.json()
     setToken(data.token)
-    
-    // Usar window.location.origin para la URL correcta en cualquier ambiente
+
+    // window.location.origin para que el QR apunte a la dirección correcta
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
     setUrlQR(`${baseUrl}/confirmar?token=${data.token}`)
-    setSegundos(30)
+    setSegundos(DURACION)
   }
 
   useEffect(() => {
@@ -34,7 +31,7 @@ export default function Marcar() {
       setSegundos(s => {
         if (s <= 1) {
           obtenerToken()
-          return 30
+          return DURACION
         }
         return s - 1
       })
@@ -43,28 +40,26 @@ export default function Marcar() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-800 flex items-center justify-center p-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-white mb-2">Marcá tu asistencia</h1>
-        <p className="text-gray-300 mb-8">Escaneá el código con tu celular</p>
+    <div className="fixed inset-0 bg-gray-800 flex flex-col items-center justify-center p-8">
+      <h1 className="text-3xl font-bold text-white mb-2 text-center">Marcá tu asistencia</h1>
+      <p className="text-gray-300 mb-8 text-center">Escaneá el código con tu celular</p>
 
-        {urlQR && (
-          <div className="bg-white rounded-2xl p-8 inline-block mb-6 shadow-xl">
-            <QRCode value={urlQR} size={250} />
-          </div>
-        )}
-
-        <div className="bg-gray-700 rounded-xl px-6 py-3 inline-block mb-4">
-          <p className="text-gray-300 text-sm">
-            El código se renueva en{' '}
-            <span className={`font-bold text-lg ${segundos <= 10 ? 'text-red-400' : 'text-green-400'}`}>
-              {segundos}s
-            </span>
-          </p>
+      {urlQR && (
+        <div className="bg-white rounded-2xl p-8 mb-6 shadow-xl">
+          <QRCode value={urlQR} size={250} />
         </div>
+      )}
 
-        <p className="text-gray-500 text-xs block">Sistema de Gestión — Martín</p>
+      <div className="bg-gray-700 rounded-xl px-6 py-3 mb-4">
+        <p className="text-gray-300 text-sm">
+          El código se renueva en{' '}
+          <span className={`font-bold text-lg ${segundos <= 15 ? 'text-red-400' : 'text-green-400'}`}>
+            {segundos}s
+          </span>
+        </p>
       </div>
+
+      <p className="text-gray-500 text-xs">Sistema de Gestión — Martín</p>
     </div>
   )
 }

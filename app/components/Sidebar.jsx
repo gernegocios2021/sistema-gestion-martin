@@ -3,8 +3,17 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+// Páginas donde NO se muestra el menú lateral (pantallas limpias).
+// Son las de marcación: el QR de la empresa y la confirmación del empleado.
+const RUTAS_SIN_MENU = ['/marcar', '/confirmar']
+
 export default function Sidebar() {
   const pathname = usePathname()
+
+  // Si estamos en una pantalla de marcación, no dibujamos el menú.
+  if (RUTAS_SIN_MENU.includes(pathname)) {
+    return null
+  }
 
   const links = [
     { href: '/', label: 'Dashboard' },
@@ -16,7 +25,6 @@ export default function Sidebar() {
     { href: '/lista-materiales', label: 'Materiales por obra' },
     { href: '/facturacion', label: 'Facturación' },
     { href: '/marcar', label: '📷 Marcar asistencia' },
-    
   ]
 
   return (

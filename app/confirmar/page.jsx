@@ -177,11 +177,11 @@ export default function Confirmar({ searchParams }) {
         <select
           value={empleadoElegido}
           onChange={e => setEmpleadoElegido(e.target.value)}
-          className="w-full p-3 border rounded-xl mb-4 bg-white"
+          className="w-full p-3 border rounded-xl mb-4 bg-white text-gray-800"
         >
-          <option value="">Elegí tu nombre...</option>
+          <option value="" className="text-gray-800">Elegí tu nombre...</option>
           {empleados.map(e => (
-            <option key={e.id} value={e.id}>{e.nombre} {e.apellido}</option>
+            <option key={e.id} value={e.id} className="text-gray-800">{e.nombre} {e.apellido}</option>
           ))}
         </select>
 
@@ -191,7 +191,7 @@ export default function Confirmar({ searchParams }) {
           value={claveAdmin}
           onChange={e => setClaveAdmin(e.target.value)}
           placeholder="La ingresa el encargado"
-          className="w-full p-3 border rounded-xl mb-4"
+          className="w-full p-3 border rounded-xl mb-4 bg-white text-gray-800"
         />
 
         {errorVinc && (
