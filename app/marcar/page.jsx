@@ -59,7 +59,7 @@ export default function Marcar() {
         </p>
       </div>
 
-      <p className="text-gray-500 text-xs">Sistema de Gestión — Martín</p>
+      <p className="text-gray-500 text-xs">GestionPro</p>
     </div>
   )
 }

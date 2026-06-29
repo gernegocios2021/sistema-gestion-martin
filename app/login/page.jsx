@@ -41,7 +41,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-gray-800 mb-1 text-center">Sistema Martín</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-1 text-center">GestionPro</h1>
         <p className="text-sm text-gray-500 mb-6 text-center">Ingresá para continuar</p>
 
         <label className="block text-sm font-medium text-gray-700 mb-1">Usuario</label>

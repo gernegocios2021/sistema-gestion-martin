@@ -40,7 +40,7 @@ export default function Sidebar() {
     <>
       {/* Barra superior solo en celular: título + botón hamburguesa */}
       <div className="md:hidden flex items-center justify-between bg-gray-800 text-white px-4 py-3">
-        <h2 className="text-lg font-bold">Sistema Martín</h2>
+        <h2 className="text-lg font-bold">GestionPro</h2>
         <button
           onClick={() => setAbierto(true)}
           className="text-2xl leading-none"
@@ -69,7 +69,7 @@ export default function Sidebar() {
         `}
       >
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-lg font-bold">Sistema Martín</h2>
+          <h2 className="text-lg font-bold">GestionPro</h2>
           {/* Botón cerrar, solo en celular */}
           <button
             onClick={() => setAbierto(false)}
