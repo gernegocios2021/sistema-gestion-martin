@@ -32,7 +32,7 @@ export async function POST() {
 
     await resend.emails.send({
       from: 'GestiónPro <onboarding@resend.dev>',
-      to: 'Martin@marjavi.com.ar',
+      to: 'gernegocios2021@gmail.com',
       subject: `⚠️ Alerta de stock bajo — ${productosConStockBajo.length} producto(s)`,
       html: `
         <h2>⚠️ Alerta de stock bajo</h2>
