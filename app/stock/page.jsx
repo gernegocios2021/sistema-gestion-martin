@@ -110,7 +110,7 @@ export default function Stock() {
         setProductos((prev) => prev.filter((p) => p.id !== id))
         setMensaje(`✓ "${nombre}" eliminado`)
       } else {
-        setMensaje('No se pudo eliminar (puede tener ventas asociadas)')
+        setMensaje('No se pudo eliminar: el producto tiene compras o ventas registradas')
       }
     } catch (e) {
       setMensaje('No se pudo eliminar')

@@ -21,14 +21,13 @@ export default function Sidebar() {
     { href: '/', label: 'Dashboard' },
     { href: '/ventas', label: 'Ventas' },
     { href: '/stock', label: 'Stock' },
+    { href: '/compras', label: 'Compras' },
     { href: '/gastos', label: 'Gastos' },
     { href: '/empleados', label: 'Empleados' },
     { href: '/presupuestos', label: 'Presupuestos' },
     { href: '/lista-materiales', label: 'Materiales por obra' },
     { href: '/facturacion', label: 'Facturación' },
     { href: '/marcar', label: '📷 Marcar asistencia' },
-    { href: '/cambiar-password', label: '🔑 Mi contraseña' },
-    { href: '/compras', label: 'Compras' },
   ]
 
   async function cerrarSesion() {
