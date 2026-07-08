@@ -28,6 +28,7 @@ export default function Sidebar() {
     { href: '/facturacion', label: 'Facturación' },
     { href: '/marcar', label: '📷 Marcar asistencia' },
     { href: '/cambiar-password', label: '🔑 Mi contraseña' },
+    { href: '/compras', label: 'Compras' },
   ]
 
   async function cerrarSesion() {
