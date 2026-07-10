@@ -11,15 +11,18 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const { items, observaciones } = await request.json()
-    
-    // Calcular total
-    const total = items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0)
-    
+    const { items, observaciones, instalacion } = await request.json()
+
+    const instalacionNum = Number(instalacion) || 0
+
+    // Calcular total: productos + instalación
+    const totalProductos = items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0)
+    const total = totalProductos + instalacionNum
+
     // Insertar venta
     const venta = await pool.query(
-      'INSERT INTO ventas (total, observaciones) VALUES ($1, $2) RETURNING *',
-      [total, observaciones]
+      'INSERT INTO ventas (total, observaciones, instalacion) VALUES ($1, $2, $3) RETURNING *',
+      [total, observaciones, instalacionNum]
     )
     const ventaId = venta.rows[0].id
 
@@ -29,7 +32,7 @@ export async function POST(request) {
         'INSERT INTO venta_items (venta_id, producto_id, cantidad, precio_unitario) VALUES ($1, $2, $3, $4)',
         [ventaId, item.producto_id, item.cantidad, item.precio_unitario]
       )
-      // Descontar del stock automáticamente
+      // Descontar del stock automáticamente (la instalación NO descuenta stock)
       await pool.query(
         'UPDATE productos SET stock_actual = stock_actual - $1 WHERE id = $2',
         [item.cantidad, item.producto_id]
