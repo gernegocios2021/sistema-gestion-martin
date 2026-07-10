@@ -10,7 +10,7 @@ export default function Stock() {
   const [editando, setEditando] = useState(null)
   const [reponiendo, setReponiendo] = useState(null)
   const [cantidadReponer, setCantidadReponer] = useState('')
-  const [nuevo, setNuevo] = useState({ nombre: '', unidad: 'Unidad', stock_actual: '', stock_minimo: '', categoria: 'materia_prima' })
+  const [nuevo, setNuevo] = useState({ nombre: '', unidad: 'Unidad', stock_actual: '', stock_minimo: '', categoria: 'materia_prima', precio_sin_colocacion: '', precio_con_colocacion: '', grupo: '' })
   const [mensaje, setMensaje] = useState('')
 
   useEffect(() => {
@@ -37,13 +37,16 @@ export default function Stock() {
         unidad: nuevo.unidad,
         stock_actual: Number(nuevo.stock_actual) || 0,
         stock_minimo: Number(nuevo.stock_minimo) || 0,
-        categoria: nuevo.categoria
+        categoria: nuevo.categoria,
+        precio_sin_colocacion: nuevo.precio_sin_colocacion,
+        precio_con_colocacion: nuevo.precio_con_colocacion,
+        grupo: nuevo.grupo
       })
     })
     if (res.ok) {
       const creado = await res.json()
       setProductos((prev) => [...prev, creado])
-      setNuevo({ nombre: '', unidad: 'Unidad', stock_actual: '', stock_minimo: '', categoria: 'materia_prima' })
+      setNuevo({ nombre: '', unidad: 'Unidad', stock_actual: '', stock_minimo: '', categoria: 'materia_prima', precio_sin_colocacion: '', precio_con_colocacion: '', grupo: '' })
       setMostrarFormulario(false)
       setMensaje('✓ Producto agregado')
       setTimeout(() => setMensaje(''), 3000)
@@ -65,7 +68,10 @@ export default function Stock() {
         unidad: editando.unidad,
         stock_actual: editando.stock_actual,
         stock_minimo: editando.stock_minimo,
-        categoria: editando.categoria
+        categoria: editando.categoria,
+        precio_sin_colocacion: editando.precio_sin_colocacion,
+        precio_con_colocacion: editando.precio_con_colocacion,
+        grupo: editando.grupo
       })
     })
     if (res.ok) {
@@ -126,6 +132,11 @@ export default function Stock() {
     setTimeout(() => setMensaje(''), 4000)
   }
 
+  function formatearPrecio(valor) {
+    if (valor === null || valor === undefined || valor === '') return '-'
+    return `$${Number(valor).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
+  }
+
   return (
     <div className="p-4 sm:p-8">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
@@ -170,7 +181,19 @@ export default function Stock() {
               <label className="text-xs text-gray-500 mb-1 block">Stock mínimo</label>
               <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" placeholder="Ej: 5" type="number" value={nuevo.stock_minimo} onChange={(e) => setNuevo({ ...nuevo, stock_minimo: e.target.value })} />
             </div>
-            <div className="sm:col-span-2">
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Precio sin colocación</label>
+              <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" placeholder="Ej: 15000" type="number" step="any" value={nuevo.precio_sin_colocacion} onChange={(e) => setNuevo({ ...nuevo, precio_sin_colocacion: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Precio con colocación</label>
+              <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" placeholder="Ej: 18000" type="number" step="any" value={nuevo.precio_con_colocacion} onChange={(e) => setNuevo({ ...nuevo, precio_con_colocacion: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Grupo</label>
+              <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" placeholder="Ej: Float incoloro, Perfiles..." value={nuevo.grupo} onChange={(e) => setNuevo({ ...nuevo, grupo: e.target.value })} />
+            </div>
+            <div>
               <label className="text-xs text-gray-500 mb-1 block">Categoría</label>
               <select className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" value={nuevo.categoria} onChange={(e) => setNuevo({ ...nuevo, categoria: e.target.value })}>
                 <option value="materia_prima">🔧 Materia prima (aluminio, herrajes, etc.)</option>
@@ -207,7 +230,19 @@ export default function Stock() {
               <label className="text-xs text-gray-500 mb-1 block">Stock mínimo</label>
               <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" type="number" value={editando.stock_minimo ?? ''} onChange={(e) => setEditando({ ...editando, stock_minimo: e.target.value })} />
             </div>
-            <div className="sm:col-span-2">
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Precio sin colocación</label>
+              <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" type="number" step="any" value={editando.precio_sin_colocacion ?? ''} onChange={(e) => setEditando({ ...editando, precio_sin_colocacion: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Precio con colocación</label>
+              <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" type="number" step="any" value={editando.precio_con_colocacion ?? ''} onChange={(e) => setEditando({ ...editando, precio_con_colocacion: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Grupo</label>
+              <input className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" value={editando.grupo ?? ''} onChange={(e) => setEditando({ ...editando, grupo: e.target.value })} />
+            </div>
+            <div>
               <label className="text-xs text-gray-500 mb-1 block">Categoría</label>
               <select className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full" value={editando.categoria || 'materia_prima'} onChange={(e) => setEditando({ ...editando, categoria: e.target.value })}>
                 <option value="materia_prima">🔧 Materia prima (aluminio, herrajes, etc.)</option>
@@ -243,54 +278,60 @@ export default function Stock() {
       )}
 
       <div className="overflow-x-auto bg-white rounded-xl shadow">
-        <table className="w-full min-w-[760px]">
+        <table className="w-full min-w-[1040px] text-xs">
           <thead className="bg-gray-800 text-white">
             <tr>
-              <th className="text-left px-6 py-3 text-sm">Producto</th>
-              <th className="text-left px-6 py-3 text-sm">Categoría</th>
-              <th className="text-left px-6 py-3 text-sm">Unidad de medida</th>
-              <th className="text-left px-6 py-3 text-sm">Stock actual</th>
-              <th className="text-left px-6 py-3 text-sm">Stock mínimo</th>
-              <th className="text-left px-6 py-3 text-sm">Estado</th>
-              <th className="text-left px-6 py-3 text-sm">Acciones</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Producto</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Grupo</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Categoría</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Unidad</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Stock</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Mínimo</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Sin coloc.</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Con coloc.</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Estado</th>
+              <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {productos.map((p) => (
               <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-800">{p.nombre}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {p.categoria === 'mercaderia' ? '🪟 Mercadería' : '🔧 Materia prima'}
+                <td className="px-3 py-1.5 text-gray-800 whitespace-nowrap">{p.nombre}</td>
+                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{p.grupo || '-'}</td>
+                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">
+                  {p.categoria === 'mercaderia' ? '🪟 Mercadería' : '🔧 M. prima'}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500">{p.unidad}</td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-800">{p.stock_actual}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{p.stock_minimo}</td>
-                <td className="px-6 py-4">
+                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{p.unidad}</td>
+                <td className="px-3 py-1.5 font-medium text-gray-800 whitespace-nowrap">{p.stock_actual}</td>
+                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{p.stock_minimo}</td>
+                <td className="px-3 py-1.5 text-gray-700 whitespace-nowrap">{formatearPrecio(p.precio_sin_colocacion)}</td>
+                <td className="px-3 py-1.5 text-gray-700 whitespace-nowrap">{formatearPrecio(p.precio_con_colocacion)}</td>
+                <td className="px-3 py-1.5 whitespace-nowrap">
                   {Number(p.stock_actual) <= Number(p.stock_minimo) ? (
-                    <span className="bg-red-100 text-red-600 text-xs font-medium px-3 py-1 rounded-full">⚠ Stock bajo</span>
+                    <span className="bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full">⚠ Bajo</span>
                   ) : (
-                    <span className="bg-green-100 text-green-600 text-xs font-medium px-3 py-1 rounded-full">✓ Normal</span>
+                    <span className="bg-green-100 text-green-600 font-medium px-2 py-0.5 rounded-full">✓ Normal</span>
                   )}
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-2 flex-wrap">
+                <td className="px-3 py-1.5">
+                  <div className="flex gap-1 flex-nowrap">
                     <button
                       onClick={() => { setReponiendo(p); setCantidadReponer(''); setEditando(null); setMostrarFormulario(false) }}
-                      className="bg-blue-100 text-blue-600 text-xs font-medium px-3 py-1 rounded-full hover:bg-blue-200"
+                      className="bg-blue-100 text-blue-600 font-medium px-2 py-0.5 rounded-full hover:bg-blue-200 whitespace-nowrap"
                     >
                       + Reponer
                     </button>
                     <button
                       onClick={() => { setEditando(p); setReponiendo(null); setMostrarFormulario(false) }}
-                      className="bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full hover:bg-yellow-200"
+                      className="bg-yellow-100 text-yellow-700 font-medium px-2 py-0.5 rounded-full hover:bg-yellow-200 whitespace-nowrap"
                     >
                       ✏ Editar
                     </button>
                     <button
                       onClick={() => eliminarProducto(p.id, p.nombre)}
-                      className="bg-red-100 text-red-600 text-xs font-medium px-3 py-1 rounded-full hover:bg-red-200"
+                      className="bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full hover:bg-red-200 whitespace-nowrap"
                     >
-                      🗑 Eliminar
+                      🗑
                     </button>
                   </div>
                 </td>
