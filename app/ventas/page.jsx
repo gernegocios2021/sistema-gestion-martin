@@ -36,13 +36,20 @@ export default function Ventas() {
     setItems(items.filter((_, i) => i !== index))
   }
 
+  // Devuelve la unidad del producto elegido (m², Barra, etc.)
+  function unidadDe(productoId) {
+    const p = productos.find(pr => String(pr.id) === String(productoId))
+    return p ? p.unidad : ''
+  }
+
   const total = items.reduce((sum, item) => {
     return sum + (parseFloat(item.cantidad) * parseFloat(item.precio_unitario) || 0)
   }, 0)
 
   async function registrarVenta() {
     if (items.some(i => !i.producto_id || !i.precio_unitario)) {
-      setMensaje('Completá todos los campos antes de guardar.')
+      setMensaje('Completá producto y precio en todos los renglones.')
+      setTimeout(() => setMensaje(''), 3000)
       return
     }
     const res = await fetch('/api/ventas', {
@@ -51,7 +58,7 @@ export default function Ventas() {
       body: JSON.stringify({
         items: items.map(i => ({
           producto_id: parseInt(i.producto_id),
-          cantidad: parseInt(i.cantidad),
+          cantidad: parseFloat(i.cantidad),
           precio_unitario: parseFloat(i.precio_unitario)
         })),
         observaciones
@@ -82,20 +89,27 @@ export default function Ventas() {
             >
               <option value="">Seleccioná un producto</option>
               {productos.map(p => (
-                <option key={p.id} value={p.id}>{p.nombre}</option>
+                <option key={p.id} value={p.id}>{p.nombre} ({p.unidad})</option>
               ))}
             </select>
-            <input
-              className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white"
-              type="number"
-              placeholder="Cantidad"
-              value={item.cantidad}
-              onChange={(e) => actualizarItem(index, 'cantidad', e.target.value)}
-            />
+            <div className="flex items-center gap-2">
+              <input
+                className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white w-full"
+                type="number"
+                step="any"
+                placeholder="Cantidad"
+                value={item.cantidad}
+                onChange={(e) => actualizarItem(index, 'cantidad', e.target.value)}
+              />
+              {item.producto_id && (
+                <span className="text-xs text-gray-500 whitespace-nowrap">{unidadDe(item.producto_id)}</span>
+              )}
+            </div>
             <div className="flex gap-2">
               <input
                 className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white flex-1 min-w-0"
                 type="number"
+                step="any"
                 placeholder="Precio unitario"
                 value={item.precio_unitario}
                 onChange={(e) => actualizarItem(index, 'precio_unitario', e.target.value)}
@@ -120,7 +134,7 @@ export default function Ventas() {
 
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <p className="text-lg font-bold text-gray-800">
-            Total: <span className="text-blue-600">${total.toFixed(2)}</span>
+            Total: <span className="text-blue-600">${total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
           </p>
           <button onClick={registrarVenta} className="bg-green-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-green-700">
             Registrar venta
@@ -146,7 +160,7 @@ export default function Ventas() {
               <tr key={v.id} className="border-t border-gray-100 hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm text-gray-800">#{v.id}</td>
                 <td className="px-6 py-4 text-sm text-gray-500">{new Date(v.fecha).toLocaleDateString('es-AR')}</td>
-                <td className="px-6 py-4 text-sm font-medium text-green-600">${parseFloat(v.total).toFixed(2)}</td>
+                <td className="px-6 py-4 text-sm font-medium text-green-600">${parseFloat(v.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
                 <td className="px-6 py-4 text-sm text-gray-500">{v.observaciones || '-'}</td>
               </tr>
             ))}
