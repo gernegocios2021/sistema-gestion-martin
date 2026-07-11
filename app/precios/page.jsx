@@ -9,14 +9,77 @@ export default function Precios() {
   const [mensaje, setMensaje] = useState('')
   const [aplicando, setAplicando] = useState(null)
 
+  const [proveedores, setProveedores] = useState([])
+  const [configProveedor, setConfigProveedor] = useState({}) // { Alukit: { cotizacion_dolar, margen_porcentaje } }
+  const [guardandoProveedor, setGuardandoProveedor] = useState(null)
+  const [recalculando, setRecalculando] = useState(null)
+
   useEffect(() => {
     cargar()
+    cargarProveedores()
   }, [])
 
   async function cargar() {
     const res = await fetch('/api/products')
     const data = await res.json()
     setProductos(data)
+  }
+
+  async function cargarProveedores() {
+    const res = await fetch('/api/proveedores')
+    const data = await res.json()
+    setProveedores(data)
+    const inicial = {}
+    data.forEach((p) => {
+      inicial[p.proveedor] = {
+        cotizacion_dolar: p.cotizacion_dolar,
+        margen_porcentaje: p.margen_porcentaje
+      }
+    })
+    setConfigProveedor(inicial)
+  }
+
+  function actualizarConfigProveedor(proveedor, campo, valor) {
+    setConfigProveedor((prev) => ({
+      ...prev,
+      [proveedor]: { ...prev[proveedor], [campo]: valor }
+    }))
+  }
+
+  async function guardarYRecalcular(proveedor) {
+    const cfg = configProveedor[proveedor] || {}
+    setGuardandoProveedor(proveedor)
+    try {
+      await fetch('/api/proveedores', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          proveedor,
+          cotizacion_dolar: cfg.cotizacion_dolar,
+          margen_porcentaje: cfg.margen_porcentaje
+        })
+      })
+
+      setRecalculando(proveedor)
+      const res = await fetch('/api/precios/recalcular', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proveedor })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMensaje(`✓ Se recalcularon ${data.actualizados} productos de ${proveedor}`)
+        cargar()
+      } else {
+        setMensaje(data.error || 'Error al recalcular')
+      }
+    } catch (e) {
+      setMensaje('Error de conexión')
+    } finally {
+      setGuardandoProveedor(null)
+      setRecalculando(null)
+      setTimeout(() => setMensaje(''), 4000)
+    }
   }
 
   const grupos = {}
@@ -83,6 +146,51 @@ export default function Precios() {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Lista de Precios</h1>
 
       {mensaje && <p className="mb-4 text-sm font-medium text-green-600">{mensaje}</p>}
+
+      {proveedores.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-8 border-l-4 border-purple-400">
+          <h2 className="text-lg font-semibold text-gray-700 mb-1">Proveedores en dólares</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Poné la cotización del día y tu margen de ganancia. Al guardar, se recalculan todos los precios de ese proveedor automáticamente.
+          </p>
+          <div className="space-y-4">
+            {proveedores.map((prov) => (
+              <div key={prov.proveedor} className="flex flex-col sm:flex-row sm:items-center gap-3 border-t pt-3 first:border-t-0 first:pt-0">
+                <span className="font-medium text-gray-800 w-28">{prov.proveedor}</span>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-gray-500">Cotización USD</label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="Ej: 1350"
+                    value={configProveedor[prov.proveedor]?.cotizacion_dolar ?? ''}
+                    onChange={(e) => actualizarConfigProveedor(prov.proveedor, 'cotizacion_dolar', e.target.value)}
+                    className="border rounded-lg px-3 py-1.5 text-sm text-gray-800 bg-white w-28"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-gray-500">Margen %</label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="Ej: 30"
+                    value={configProveedor[prov.proveedor]?.margen_porcentaje ?? ''}
+                    onChange={(e) => actualizarConfigProveedor(prov.proveedor, 'margen_porcentaje', e.target.value)}
+                    className="border rounded-lg px-3 py-1.5 text-sm text-gray-800 bg-white w-24"
+                  />
+                </div>
+                <button
+                  onClick={() => guardarYRecalcular(prov.proveedor)}
+                  disabled={guardandoProveedor === prov.proveedor}
+                  className="bg-purple-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-purple-700 disabled:bg-gray-400 whitespace-nowrap"
+                >
+                  {recalculando === prov.proveedor ? 'Recalculando...' : guardandoProveedor === prov.proveedor ? 'Guardando...' : 'Guardar y recalcular'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-8 border-l-4 border-red-400">
         <h2 className="text-lg font-semibold text-gray-700 mb-1">Aumento general</h2>
