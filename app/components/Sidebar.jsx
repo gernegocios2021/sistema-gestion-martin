@@ -21,6 +21,7 @@ export default function Sidebar() {
     { href: '/', label: 'Dashboard' },
     { href: '/ventas', label: 'Ventas' },
     { href: '/stock', label: 'Stock' },
+    { href: '/precios', label: 'Lista de Precios' },
     { href: '/compras', label: 'Compras' },
     { href: '/gastos', label: 'Gastos' },
     { href: '/empleados', label: 'Empleados' },
