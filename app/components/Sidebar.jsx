@@ -24,10 +24,11 @@ export default function Sidebar() {
     { href: '/precios', label: 'Lista de Precios' },
     { href: '/compras', label: 'Compras' },
     { href: '/gastos', label: 'Gastos' },
-    { href: '/empleados', label: 'Empleados' },
+    { href: '/rentabilidad', label: 'Rentabilidad' },
     { href: '/presupuestos', label: 'Presupuestos' },
     { href: '/lista-materiales', label: 'Materiales por obra' },
     { href: '/facturacion', label: 'Facturación' },
+    { href: '/empleados', label: 'Empleados' },
     { href: '/marcar', label: '📷 Marcar asistencia' },
   ]
 

@@ -8,6 +8,7 @@ export default function Precios() {
   const [porcentajeGlobal, setPorcentajeGlobal] = useState('')
   const [mensaje, setMensaje] = useState('')
   const [aplicando, setAplicando] = useState(null)
+  const [busqueda, setBusqueda] = useState('')
 
   const [proveedores, setProveedores] = useState([])
   const [configProveedor, setConfigProveedor] = useState({}) // { Alukit: { cotizacion_dolar, margen_porcentaje } }
@@ -82,8 +83,13 @@ export default function Precios() {
     }
   }
 
+  const texto = busqueda.trim().toLowerCase()
+  const productosFiltrados = texto
+    ? productos.filter((p) => p.nombre?.toLowerCase().includes(texto) || p.grupo?.toLowerCase().includes(texto))
+    : productos
+
   const grupos = {}
-  productos.forEach((p) => {
+  productosFiltrados.forEach((p) => {
     const g = p.grupo || 'Sin grupo'
     if (!grupos[g]) grupos[g] = []
     grupos[g].push(p)
@@ -144,6 +150,27 @@ export default function Precios() {
   return (
     <div className="p-4 sm:p-8">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Lista de Precios</h1>
+
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <input
+            type="text"
+            placeholder="Buscar por nombre o grupo..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="border rounded-lg pl-10 pr-4 py-2 text-sm text-gray-800 bg-white w-full shadow-sm"
+          />
+          {busqueda && (
+            <button
+              onClick={() => setBusqueda('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
 
       {mensaje && <p className="mb-4 text-sm font-medium text-green-600">{mensaje}</p>}
 
@@ -278,8 +305,10 @@ export default function Precios() {
         </div>
       ))}
 
-      {productos.length === 0 && (
-        <p className="text-center text-gray-400 text-sm py-8">No hay productos cargados todavía.</p>
+      {productosFiltrados.length === 0 && (
+        <p className="text-center text-gray-400 text-sm py-8">
+          {busqueda ? `No se encontraron productos para "${busqueda}"` : 'No hay productos cargados todavía.'}
+        </p>
       )}
     </div>
   )

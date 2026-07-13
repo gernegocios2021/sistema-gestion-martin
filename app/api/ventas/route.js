@@ -2,8 +2,23 @@ import pool from '../../db'
 
 export async function GET() {
   try {
-    const resultado = await pool.query('SELECT * FROM ventas ORDER BY fecha DESC')
-    return Response.json(resultado.rows)
+    const ventas = await pool.query('SELECT * FROM ventas ORDER BY fecha DESC')
+
+    // Para cada venta, traemos sus ítems con el nombre del producto
+    const ventasConItems = await Promise.all(
+      ventas.rows.map(async (venta) => {
+        const items = await pool.query(
+          `SELECT vi.cantidad, vi.precio_unitario, p.nombre, p.unidad
+           FROM venta_items vi
+           LEFT JOIN productos p ON p.id = vi.producto_id
+           WHERE vi.venta_id = $1`,
+          [venta.id]
+        )
+        return { ...venta, items: items.rows }
+      })
+    )
+
+    return Response.json(ventasConItems)
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 })
   }

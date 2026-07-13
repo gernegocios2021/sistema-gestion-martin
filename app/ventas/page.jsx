@@ -88,6 +88,11 @@ export default function Ventas() {
     }
   }
 
+  function formatearProductos(itemsVenta) {
+    if (!itemsVenta || itemsVenta.length === 0) return '-'
+    return itemsVenta.map(it => `${it.cantidad} ${it.unidad || ''} ${it.nombre || 'Producto eliminado'}`.trim()).join(', ')
+  }
+
   return (
     <div className="p-4 sm:p-8">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Ventas</h1>
@@ -207,11 +212,12 @@ export default function Ventas() {
 
       <h2 className="text-lg font-semibold text-gray-700 mb-4">Historial de ventas</h2>
       <div className="overflow-x-auto bg-white rounded-xl shadow">
-        <table className="w-full min-w-[500px]">
+        <table className="w-full min-w-[700px]">
           <thead className="bg-gray-800 text-white">
             <tr>
               <th className="text-left px-6 py-3 text-sm">ID</th>
               <th className="text-left px-6 py-3 text-sm">Fecha</th>
+              <th className="text-left px-6 py-3 text-sm">Producto</th>
               <th className="text-left px-6 py-3 text-sm">Instalación</th>
               <th className="text-left px-6 py-3 text-sm">Total</th>
               <th className="text-left px-6 py-3 text-sm">Observaciones</th>
@@ -222,6 +228,7 @@ export default function Ventas() {
               <tr key={v.id} className="border-t border-gray-100 hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm text-gray-800">#{v.id}</td>
                 <td className="px-6 py-4 text-sm text-gray-500">{new Date(v.fecha).toLocaleDateString('es-AR')}</td>
+                <td className="px-6 py-4 text-sm text-gray-700">{formatearProductos(v.items)}</td>
                 <td className="px-6 py-4 text-sm text-gray-500">{Number(v.instalacion) > 0 ? `$${parseFloat(v.instalacion).toLocaleString('es-AR', { minimumFractionDigits: 2 })}` : '-'}</td>
                 <td className="px-6 py-4 text-sm font-medium text-green-600">${parseFloat(v.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
                 <td className="px-6 py-4 text-sm text-gray-500">{v.observaciones || '-'}</td>
@@ -229,7 +236,7 @@ export default function Ventas() {
             ))}
             {ventas.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-400 text-sm">No hay ventas registradas todavía</td>
+                <td colSpan={6} className="px-6 py-8 text-center text-gray-400 text-sm">No hay ventas registradas todavía</td>
               </tr>
             )}
           </tbody>

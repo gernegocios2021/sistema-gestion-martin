@@ -12,6 +12,7 @@ export default function Stock() {
   const [cantidadReponer, setCantidadReponer] = useState('')
   const [nuevo, setNuevo] = useState({ nombre: '', unidad: 'Unidad', stock_actual: '', stock_minimo: '', categoria: 'materia_prima', precio_sin_colocacion: '', precio_con_colocacion: '', grupo: '' })
   const [mensaje, setMensaje] = useState('')
+  const [busqueda, setBusqueda] = useState('')
 
   useEffect(() => {
     cargarProductos()
@@ -137,6 +138,15 @@ export default function Stock() {
     return `$${Number(valor).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`
   }
 
+  const productosFiltrados = productos.filter((p) => {
+    const texto = busqueda.trim().toLowerCase()
+    if (!texto) return true
+    return (
+      p.nombre?.toLowerCase().includes(texto) ||
+      p.grupo?.toLowerCase().includes(texto)
+    )
+  })
+
   return (
     <div className="p-4 sm:p-8">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
@@ -154,6 +164,27 @@ export default function Stock() {
           >
             + Agregar producto
           </button>
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <input
+            type="text"
+            placeholder="Buscar por nombre o grupo..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="border rounded-lg pl-10 pr-4 py-2 text-sm text-gray-800 bg-white w-full shadow-sm"
+          />
+          {busqueda && (
+            <button
+              onClick={() => setBusqueda('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
@@ -294,7 +325,7 @@ export default function Stock() {
             </tr>
           </thead>
           <tbody>
-            {productos.map((p) => (
+            {productosFiltrados.map((p) => (
               <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
                 <td className="px-3 py-1.5 text-gray-800 whitespace-nowrap">{p.nombre}</td>
                 <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{p.grupo || '-'}</td>
@@ -337,9 +368,19 @@ export default function Stock() {
                 </td>
               </tr>
             ))}
+            {productosFiltrados.length === 0 && (
+              <tr>
+                <td colSpan={10} className="px-3 py-8 text-center text-gray-400">
+                  No se encontraron productos para "{busqueda}"
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+      {busqueda && productosFiltrados.length > 0 && (
+        <p className="text-xs text-gray-500 mt-2">{productosFiltrados.length} de {productos.length} productos</p>
+      )}
     </div>
   )
 }
