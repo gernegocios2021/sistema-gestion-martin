@@ -2,6 +2,21 @@
 
 import { useState, useEffect } from 'react'
 
+// Grupos que se muestran primero (los más usados por Martín, en el orden de su lista Marjavi).
+// El resto de los grupos (principalmente Alukit, de uso ocasional) aparece después, alfabéticamente.
+const GRUPOS_PRIORITARIOS = [
+  'Float incoloro',
+  'Float color - Stop sol',
+  'Laminados',
+  'Vidrios Fantasía incoloros',
+  'Vidrios Fantasía color',
+  'Policarbonato alveolar',
+  'Perfiles',
+  'Herrajes Collio',
+  'Herrajes',
+  'Accesorios'
+]
+
 export default function Precios() {
   const [productos, setProductos] = useState([])
   const [porcentajes, setPorcentajes] = useState({})
@@ -34,7 +49,8 @@ export default function Precios() {
     data.forEach((p) => {
       inicial[p.proveedor] = {
         cotizacion_dolar: p.cotizacion_dolar,
-        margen_porcentaje: p.margen_porcentaje
+        margen_porcentaje: p.margen_porcentaje,
+        multiplicador_colocacion: p.multiplicador_colocacion
       }
     })
     setConfigProveedor(inicial)
@@ -57,7 +73,8 @@ export default function Precios() {
         body: JSON.stringify({
           proveedor,
           cotizacion_dolar: cfg.cotizacion_dolar,
-          margen_porcentaje: cfg.margen_porcentaje
+          margen_porcentaje: cfg.margen_porcentaje,
+          multiplicador_colocacion: cfg.multiplicador_colocacion
         })
       })
 
@@ -206,6 +223,24 @@ export default function Precios() {
                     className="border rounded-lg px-3 py-1.5 text-sm text-gray-800 bg-white w-24"
                   />
                 </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-gray-500">Recargo colocación %</label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="Ej: 60"
+                    value={
+                      configProveedor[prov.proveedor]?.multiplicador_colocacion !== undefined && configProveedor[prov.proveedor]?.multiplicador_colocacion !== null
+                        ? Math.round((Number(configProveedor[prov.proveedor].multiplicador_colocacion) - 1) * 100)
+                        : ''
+                    }
+                    onChange={(e) => {
+                      const pct = e.target.value
+                      actualizarConfigProveedor(prov.proveedor, 'multiplicador_colocacion', pct === '' ? '' : 1 + Number(pct) / 100)
+                    }}
+                    className="border rounded-lg px-3 py-1.5 text-sm text-gray-800 bg-white w-24"
+                  />
+                </div>
                 <button
                   onClick={() => guardarYRecalcular(prov.proveedor)}
                   disabled={guardandoProveedor === prov.proveedor}
@@ -246,7 +281,16 @@ export default function Precios() {
         </div>
       </div>
 
-      {Object.keys(grupos).sort().map((grupo) => (
+      {Object.keys(grupos)
+        .sort((a, b) => {
+          const iA = GRUPOS_PRIORITARIOS.indexOf(a)
+          const iB = GRUPOS_PRIORITARIOS.indexOf(b)
+          if (iA !== -1 && iB !== -1) return iA - iB // ambos prioritarios: respetar el orden fijo
+          if (iA !== -1) return -1 // solo A es prioritario: va primero
+          if (iB !== -1) return 1 // solo B es prioritario: va primero
+          return a.localeCompare(b) // ninguno prioritario: alfabético
+        })
+        .map((grupo) => (
         <div key={grupo} className="bg-white rounded-xl shadow mb-6 overflow-hidden">
           <div className="bg-gray-800 text-white px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <h3 className="font-semibold">

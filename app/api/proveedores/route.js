@@ -11,15 +11,20 @@ export async function GET() {
 
 export async function PATCH(request) {
   try {
-    const { proveedor, cotizacion_dolar, margen_porcentaje } = await request.json()
+    const { proveedor, cotizacion_dolar, margen_porcentaje, multiplicador_colocacion } = await request.json()
     if (!proveedor) {
       return Response.json({ error: 'Falta el proveedor' }, { status: 400 })
     }
     const resultado = await pool.query(
       `UPDATE configuracion_proveedores
-       SET cotizacion_dolar = $1, margen_porcentaje = $2, actualizado_en = NOW()
-       WHERE proveedor = $3 RETURNING *`,
-      [Number(cotizacion_dolar) || 0, Number(margen_porcentaje) || 0, proveedor]
+       SET cotizacion_dolar = $1, margen_porcentaje = $2, multiplicador_colocacion = $3, actualizado_en = NOW()
+       WHERE proveedor = $4 RETURNING *`,
+      [
+        Number(cotizacion_dolar) || 0,
+        Number(margen_porcentaje) || 0,
+        multiplicador_colocacion !== undefined && multiplicador_colocacion !== '' ? Number(multiplicador_colocacion) : 1,
+        proveedor
+      ]
     )
     return Response.json(resultado.rows[0])
   } catch (error) {
