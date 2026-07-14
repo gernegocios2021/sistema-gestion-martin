@@ -29,9 +29,9 @@ export default function Sidebar() {
     { href: '/lista-materiales', label: 'Materiales por obra' },
     { href: '/facturacion', label: 'Facturación' },
     { href: '/empleados', label: 'Empleados' },
-    { href: '/marcar', label: '📷 Marcar asistencia' },
     { href: '/liquidacion', label: 'Liquidación de Sueldos' },
 { href: '/feriados', label: 'Feriados' },
+{ href: '/marcar', label: '📷 Marcar asistencia' },
   ]
 
   async function cerrarSesion() {
