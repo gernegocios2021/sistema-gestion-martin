@@ -30,6 +30,8 @@ export default function Sidebar() {
     { href: '/facturacion', label: 'Facturación' },
     { href: '/empleados', label: 'Empleados' },
     { href: '/marcar', label: '📷 Marcar asistencia' },
+    { href: '/liquidacion', label: 'Liquidación de Sueldos' },
+{ href: '/feriados', label: 'Feriados' },
   ]
 
   async function cerrarSesion() {
