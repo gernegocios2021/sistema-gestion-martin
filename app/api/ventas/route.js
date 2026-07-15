@@ -59,3 +59,35 @@ export async function POST(request) {
     return Response.json({ error: error.message }, { status: 500 })
   }
 }
+
+// Elimina una venta: devuelve el stock descontado y borra el registro.
+// No permite eliminar ventas que ya tengan una factura emitida (CAE).
+export async function DELETE(request) {
+  try {
+    const { id } = await request.json()
+    if (!id) {
+      return Response.json({ error: 'Falta el id' }, { status: 400 })
+    }
+
+    const ventaRes = await pool.query('SELECT factura_cae FROM ventas WHERE id = $1', [id])
+    if (ventaRes.rows.length === 0) {
+      return Response.json({ error: 'Venta no encontrada' }, { status: 404 })
+    }
+    if (ventaRes.rows[0].factura_cae) {
+      return Response.json({ error: 'No se puede eliminar: esta venta ya tiene una factura emitida' }, { status: 409 })
+    }
+
+    // Devolver el stock de cada producto vendido
+    const items = await pool.query('SELECT producto_id, cantidad FROM venta_items WHERE venta_id = $1', [id])
+    for (const item of items.rows) {
+      await pool.query('UPDATE productos SET stock_actual = stock_actual + $1 WHERE id = $2', [item.cantidad, item.producto_id])
+    }
+
+    await pool.query('DELETE FROM venta_items WHERE venta_id = $1', [id])
+    await pool.query('DELETE FROM ventas WHERE id = $1', [id])
+
+    return Response.json({ ok: true })
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 })
+  }
+}

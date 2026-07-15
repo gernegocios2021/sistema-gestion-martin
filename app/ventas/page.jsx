@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react'
 
+const TIPOS_IVA = [
+  { id: 1, label: 'Consumidor Final' },
+  { id: 4, label: 'Responsable Inscripto' },
+  { id: 3, label: 'Monotributo' },
+  { id: 2, label: 'Exento' }
+]
+
 export default function Ventas() {
   const [productos, setProductos] = useState([])
   const [items, setItems] = useState([{ producto_id: '', cantidad: 1, tipo_precio: 'sin_colocacion', precio_unitario: '' }])
@@ -9,6 +16,11 @@ export default function Ventas() {
   const [observaciones, setObservaciones] = useState('')
   const [ventas, setVentas] = useState([])
   const [mensaje, setMensaje] = useState('')
+
+  const [facturando, setFacturando] = useState(null) // venta_id que se está facturando
+  const [formFactura, setFormFactura] = useState({ cliente_nombre: '', cliente_documento: '', cliente_tipo_documento: 96, cliente_tipo_iva: 1, tasa_iva: 21 })
+  const [enviandoFactura, setEnviandoFactura] = useState(false)
+  const [mensajeFactura, setMensajeFactura] = useState('')
 
   useEffect(() => {
     cargarDatos()
@@ -31,7 +43,6 @@ export default function Ventas() {
     const nuevos = [...items]
     nuevos[index][campo] = valor
 
-    // Si cambia el producto o el tipo de precio, autocompletar el precio unitario
     if (campo === 'producto_id' || campo === 'tipo_precio') {
       const p = productos.find(pr => String(pr.id) === String(nuevos[index].producto_id))
       if (p) {
@@ -47,7 +58,6 @@ export default function Ventas() {
     setItems(items.filter((_, i) => i !== index))
   }
 
-  // Devuelve la unidad del producto elegido (m², Barra, etc.)
   function unidadDe(productoId) {
     const p = productos.find(pr => String(pr.id) === String(productoId))
     return p ? p.unidad : ''
@@ -91,6 +101,62 @@ export default function Ventas() {
   function formatearProductos(itemsVenta) {
     if (!itemsVenta || itemsVenta.length === 0) return '-'
     return itemsVenta.map(it => `${it.cantidad} ${it.unidad || ''} ${it.nombre || 'Producto eliminado'}`.trim()).join(', ')
+  }
+
+  async function eliminarVenta(id) {
+    if (!confirm(`¿Eliminar la venta #${id}? Se va a devolver el stock descontado.`)) return
+    try {
+      const res = await fetch('/api/ventas', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMensaje(`✓ Venta #${id} eliminada`)
+        cargarDatos()
+      } else {
+        setMensaje(data.error || 'No se pudo eliminar')
+      }
+    } catch (e) {
+      setMensaje('Error de conexión')
+    } finally {
+      setTimeout(() => setMensaje(''), 4000)
+    }
+  }
+
+  function abrirModalFactura(ventaId) {
+    setFacturando(ventaId)
+    setFormFactura({ cliente_nombre: '', cliente_documento: '', cliente_tipo_documento: 96, cliente_tipo_iva: 1, tasa_iva: 21 })
+    setMensajeFactura('')
+  }
+
+  async function emitirFactura(esProduccion) {
+    setEnviandoFactura(true)
+    setMensajeFactura('')
+    try {
+      const res = await fetch('/api/facturacion/emitir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          venta_id: facturando,
+          ...formFactura,
+          es_produccion: esProduccion
+        })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMensajeFactura(`✓ Factura emitida. CAE: ${data.CAE} - N°: ${data.NumeroComprobante}${esProduccion ? '' : ' (MODO TESTING, sin validez fiscal)'}`)
+        cargarDatos()
+        setTimeout(() => setFacturando(null), 3000)
+      } else {
+        setMensajeFactura(`❌ ${data.error}`)
+      }
+    } catch (e) {
+      setMensajeFactura('❌ Error de conexión')
+    } finally {
+      setEnviandoFactura(false)
+    }
   }
 
   return (
@@ -210,9 +276,78 @@ export default function Ventas() {
         {mensaje && <p className="mt-3 text-green-600 text-sm font-medium">{mensaje}</p>}
       </div>
 
+      {facturando && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Facturar venta #{facturando}</h3>
+
+            <label className="text-xs text-gray-500 mb-1 block">Condición de IVA del cliente</label>
+            <select
+              className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white w-full mb-3"
+              value={formFactura.cliente_tipo_iva}
+              onChange={(e) => setFormFactura({ ...formFactura, cliente_tipo_iva: Number(e.target.value) })}
+            >
+              {TIPOS_IVA.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+            </select>
+
+            <label className="text-xs text-gray-500 mb-1 block">Tasa de IVA a aplicar</label>
+            <select
+              className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white w-full mb-3"
+              value={formFactura.tasa_iva}
+              onChange={(e) => setFormFactura({ ...formFactura, tasa_iva: Number(e.target.value) })}
+            >
+              <option value={21}>21% (habitual)</option>
+              <option value={10.5}>10,5% (aberturas de aluminio para vivienda)</option>
+            </select>
+
+            {formFactura.cliente_tipo_iva !== 1 && (
+              <>
+                <label className="text-xs text-gray-500 mb-1 block">Nombre / Razón social</label>
+                <input
+                  className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white w-full mb-3"
+                  value={formFactura.cliente_nombre}
+                  onChange={(e) => setFormFactura({ ...formFactura, cliente_nombre: e.target.value })}
+                />
+                <label className="text-xs text-gray-500 mb-1 block">CUIT</label>
+                <input
+                  className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white w-full mb-3"
+                  value={formFactura.cliente_documento}
+                  onChange={(e) => setFormFactura({ ...formFactura, cliente_documento: e.target.value, cliente_tipo_documento: 80 })}
+                />
+              </>
+            )}
+
+            {mensajeFactura && <p className="text-sm mb-3">{mensajeFactura}</p>}
+
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => emitirFactura(false)}
+                disabled={enviandoFactura}
+                className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-600 disabled:bg-gray-300"
+              >
+                {enviandoFactura ? 'Enviando...' : '🧪 Emitir en Testing'}
+              </button>
+              <button
+                onClick={() => emitirFactura(true)}
+                disabled={enviandoFactura}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 disabled:bg-gray-300"
+              >
+                {enviandoFactura ? 'Enviando...' : '🔴 Emitir en Producción'}
+              </button>
+              <button
+                onClick={() => setFacturando(null)}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h2 className="text-lg font-semibold text-gray-700 mb-4">Historial de ventas</h2>
       <div className="overflow-x-auto bg-white rounded-xl shadow">
-        <table className="w-full min-w-[700px]">
+        <table className="w-full min-w-[820px]">
           <thead className="bg-gray-800 text-white">
             <tr>
               <th className="text-left px-6 py-3 text-sm">ID</th>
@@ -220,7 +355,8 @@ export default function Ventas() {
               <th className="text-left px-6 py-3 text-sm">Producto</th>
               <th className="text-left px-6 py-3 text-sm">Instalación</th>
               <th className="text-left px-6 py-3 text-sm">Total</th>
-              <th className="text-left px-6 py-3 text-sm">Observaciones</th>
+              <th className="text-left px-6 py-3 text-sm">Factura</th>
+              <th className="text-left px-6 py-3 text-sm">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -231,12 +367,35 @@ export default function Ventas() {
                 <td className="px-6 py-4 text-sm text-gray-700">{formatearProductos(v.items)}</td>
                 <td className="px-6 py-4 text-sm text-gray-500">{Number(v.instalacion) > 0 ? `$${parseFloat(v.instalacion).toLocaleString('es-AR', { minimumFractionDigits: 2 })}` : '-'}</td>
                 <td className="px-6 py-4 text-sm font-medium text-green-600">${parseFloat(v.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{v.observaciones || '-'}</td>
+                <td className="px-6 py-4 text-sm">
+                  {v.factura_cae ? (
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${v.factura_es_produccion ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      {v.factura_es_produccion ? '✓' : '🧪'} N° {v.factura_numero}
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => abrirModalFactura(v.id)}
+                      className="bg-blue-100 text-blue-600 text-xs font-medium px-3 py-1 rounded-full hover:bg-blue-200"
+                    >
+                      🧾 Facturar
+                    </button>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-sm">
+                  {!v.factura_cae && (
+                    <button
+                      onClick={() => eliminarVenta(v.id)}
+                      className="bg-red-100 text-red-600 text-xs font-medium px-3 py-1 rounded-full hover:bg-red-200"
+                    >
+                      🗑 Eliminar
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
             {ventas.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-400 text-sm">No hay ventas registradas todavía</td>
+                <td colSpan={7} className="px-6 py-8 text-center text-gray-400 text-sm">No hay ventas registradas todavía</td>
               </tr>
             )}
           </tbody>
