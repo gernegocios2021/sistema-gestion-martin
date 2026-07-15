@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 // Páginas donde NO se muestra el menú lateral (pantallas limpias).
-const RUTAS_SIN_MENU = ['/marcar', '/confirmar', '/login']
+const RUTAS_SIN_MENU = ['/marcar', '/confirmar', '/login', '/liquidacion/recibo']
 
 export default function Sidebar() {
   const pathname = usePathname()

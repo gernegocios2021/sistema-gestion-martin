@@ -110,6 +110,7 @@ export default function Liquidacion() {
                   <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Feriados no trab.</th>
                   <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Hs pagables</th>
                   <th className="text-left px-3 py-2 font-medium whitespace-nowrap">A pagar</th>
+                  <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Recibo</th>
                 </tr>
               </thead>
               <tbody>
@@ -123,11 +124,21 @@ export default function Liquidacion() {
                     <td className="px-3 py-1.5 text-gray-700 whitespace-nowrap">{e.feriados_no_trabajados}</td>
                     <td className="px-3 py-1.5 text-gray-700 whitespace-nowrap">{e.horas_pagables.toFixed(1)}</td>
                     <td className="px-3 py-1.5 font-medium text-green-600 whitespace-nowrap">{formatearMoneda(e.sueldo_a_pagar)}</td>
+                    <td className="px-3 py-1.5 whitespace-nowrap">
+                      <a
+                        href={`/liquidacion/recibo?empleado_id=${e.empleado_id}&anio=${anio}&mes=${mes}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200"
+                      >
+                        🖨 Ver
+                      </a>
+                    </td>
                   </tr>
                 ))}
                 {datos.empleados.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-3 py-8 text-center text-gray-400">No hay empleados activos</td>
+                    <td colSpan={9} className="px-3 py-8 text-center text-gray-400">No hay empleados activos</td>
                   </tr>
                 )}
               </tbody>
