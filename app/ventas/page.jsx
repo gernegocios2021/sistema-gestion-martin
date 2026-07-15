@@ -131,7 +131,7 @@ export default function Ventas() {
     setMensajeFactura('')
   }
 
-  async function emitirFactura(esProduccion) {
+  async function emitirFactura() {
     setEnviandoFactura(true)
     setMensajeFactura('')
     try {
@@ -141,12 +141,12 @@ export default function Ventas() {
         body: JSON.stringify({
           venta_id: facturando,
           ...formFactura,
-          es_produccion: esProduccion
+          es_produccion: true
         })
       })
       const data = await res.json()
       if (res.ok) {
-        setMensajeFactura(`✓ Factura emitida. CAE: ${data.CAE} - N°: ${data.NumeroComprobante}${esProduccion ? '' : ' (MODO TESTING, sin validez fiscal)'}`)
+        setMensajeFactura(`✓ Factura emitida. CAE: ${data.CAE} - N°: ${data.NumeroComprobante}`)
         cargarDatos()
         setTimeout(() => setFacturando(null), 3000)
       } else {
@@ -321,18 +321,11 @@ export default function Ventas() {
 
             <div className="flex gap-2 flex-wrap">
               <button
-                onClick={() => emitirFactura(false)}
-                disabled={enviandoFactura}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-600 disabled:bg-gray-300"
-              >
-                {enviandoFactura ? 'Enviando...' : '🧪 Emitir en Testing'}
-              </button>
-              <button
-                onClick={() => emitirFactura(true)}
+                onClick={() => emitirFactura()}
                 disabled={enviandoFactura}
                 className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 disabled:bg-gray-300"
               >
-                {enviandoFactura ? 'Enviando...' : '🔴 Emitir en Producción'}
+                {enviandoFactura ? 'Enviando...' : 'Facturar'}
               </button>
               <button
                 onClick={() => setFacturando(null)}
