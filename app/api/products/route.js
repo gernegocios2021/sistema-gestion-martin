@@ -30,16 +30,36 @@ export async function POST(request) {
 export async function PATCH(request) {
   try {
     const body = await request.json()
-   
+
     const { id } = body
     if (!id) {
       return Response.json({ error: 'Falta el id' }, { status: 400 })
     }
 
+    // Sumar/restar cantidad al stock existente (usado por "Reponer")
     if (body.cantidad !== undefined) {
       const resultado = await pool.query(
         'UPDATE productos SET stock_actual = COALESCE(stock_actual, 0) + $1 WHERE id = $2 RETURNING *',
         [Number(body.cantidad) || 0, id]
+      )
+      return Response.json(resultado.rows[0])
+    }
+
+    // Editar directamente el número de stock, sin tocar el resto de los campos
+    // (usado para la carga rápida de stock real desde la tabla)
+    if (body.set_stock !== undefined) {
+      const resultado = await pool.query(
+        'UPDATE productos SET stock_actual = $1 WHERE id = $2 RETURNING *',
+        [Number(body.set_stock) || 0, id]
+      )
+      return Response.json(resultado.rows[0])
+    }
+
+    // Editar directamente el stock mínimo, sin tocar el resto de los campos
+    if (body.set_stock_minimo !== undefined) {
+      const resultado = await pool.query(
+        'UPDATE productos SET stock_minimo = $1 WHERE id = $2 RETURNING *',
+        [Number(body.set_stock_minimo) || 0, id]
       )
       return Response.json(resultado.rows[0])
     }

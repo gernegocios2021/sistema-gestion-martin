@@ -21,6 +21,7 @@ export default function Ventas() {
   const [formFactura, setFormFactura] = useState({ cliente_nombre: '', cliente_documento: '', cliente_tipo_documento: 96, cliente_tipo_iva: 1, tasa_iva: 21 })
   const [enviandoFactura, setEnviandoFactura] = useState(false)
   const [mensajeFactura, setMensajeFactura] = useState('')
+  const [buscandoPadron, setBuscandoPadron] = useState(false)
 
   useEffect(() => {
     cargarDatos()
@@ -122,6 +123,33 @@ export default function Ventas() {
       setMensaje('Error de conexión')
     } finally {
       setTimeout(() => setMensaje(''), 4000)
+    }
+  }
+
+  async function buscarEnPadron() {
+    if (!formFactura.cliente_documento) {
+      setMensajeFactura('Ingresá el CUIT primero.')
+      return
+    }
+    setBuscandoPadron(true)
+    setMensajeFactura('')
+    try {
+      const res = await fetch('/api/facturacion/padron', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documento: formFactura.cliente_documento })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setFormFactura((prev) => ({ ...prev, cliente_nombre: data.nombre }))
+        setMensajeFactura(`✓ Encontrado: ${data.nombre}`)
+      } else {
+        setMensajeFactura(`❌ ${data.error}`)
+      }
+    } catch (e) {
+      setMensajeFactura('❌ Error de conexión')
+    } finally {
+      setBuscandoPadron(false)
     }
   }
 
@@ -302,17 +330,26 @@ export default function Ventas() {
 
             {formFactura.cliente_tipo_iva !== 1 && (
               <>
+                <label className="text-xs text-gray-500 mb-1 block">CUIT</label>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white flex-1"
+                    value={formFactura.cliente_documento}
+                    onChange={(e) => setFormFactura({ ...formFactura, cliente_documento: e.target.value, cliente_tipo_documento: 80 })}
+                  />
+                  <button
+                    onClick={buscarEnPadron}
+                    disabled={buscandoPadron}
+                    className="bg-gray-700 text-white px-3 py-2 rounded-lg text-sm hover:bg-gray-800 disabled:bg-gray-400 whitespace-nowrap"
+                  >
+                    {buscandoPadron ? '...' : '🔍 Buscar'}
+                  </button>
+                </div>
                 <label className="text-xs text-gray-500 mb-1 block">Nombre / Razón social</label>
                 <input
                   className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white w-full mb-3"
                   value={formFactura.cliente_nombre}
                   onChange={(e) => setFormFactura({ ...formFactura, cliente_nombre: e.target.value })}
-                />
-                <label className="text-xs text-gray-500 mb-1 block">CUIT</label>
-                <input
-                  className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white w-full mb-3"
-                  value={formFactura.cliente_documento}
-                  onChange={(e) => setFormFactura({ ...formFactura, cliente_documento: e.target.value, cliente_tipo_documento: 80 })}
                 />
               </>
             )}

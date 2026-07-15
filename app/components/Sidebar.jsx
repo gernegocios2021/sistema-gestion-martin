@@ -27,7 +27,6 @@ export default function Sidebar() {
     { href: '/rentabilidad', label: 'Rentabilidad' },
     { href: '/presupuestos', label: 'Presupuestos' },
     { href: '/lista-materiales', label: 'Materiales por obra' },
-    { href: '/facturacion', label: 'Facturación' },
     { href: '/empleados', label: 'Empleados' },
     { href: '/liquidacion', label: 'Liquidación de Sueldos' },
 { href: '/feriados', label: 'Feriados' },

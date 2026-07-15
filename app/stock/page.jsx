@@ -14,6 +14,11 @@ export default function Stock() {
   const [mensaje, setMensaje] = useState('')
   const [busqueda, setBusqueda] = useState('')
 
+  const [stockEdit, setStockEdit] = useState({})
+  const [guardandoStock, setGuardandoStock] = useState(null)
+  const [minimoEdit, setMinimoEdit] = useState({})
+  const [guardandoMinimo, setGuardandoMinimo] = useState(null)
+
   useEffect(() => {
     cargarProductos()
   }, [])
@@ -105,6 +110,54 @@ export default function Stock() {
     }
   }
 
+  async function guardarStockDirecto(producto) {
+    const valor = stockEdit[producto.id]
+    if (valor === undefined || valor === '' || Number(valor) === Number(producto.stock_actual)) return
+    setGuardandoStock(producto.id)
+    try {
+      const res = await fetch('/api/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: producto.id, set_stock: valor })
+      })
+      if (res.ok) {
+        const actualizado = await res.json()
+        setProductos((prev) => prev.map((p) => (p.id === actualizado.id ? actualizado : p)))
+        setStockEdit((prev) => {
+          const copia = { ...prev }
+          delete copia[producto.id]
+          return copia
+        })
+      }
+    } finally {
+      setGuardandoStock(null)
+    }
+  }
+
+  async function guardarMinimoDirecto(producto) {
+    const valor = minimoEdit[producto.id]
+    if (valor === undefined || valor === '' || Number(valor) === Number(producto.stock_minimo)) return
+    setGuardandoMinimo(producto.id)
+    try {
+      const res = await fetch('/api/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: producto.id, set_stock_minimo: valor })
+      })
+      if (res.ok) {
+        const actualizado = await res.json()
+        setProductos((prev) => prev.map((p) => (p.id === actualizado.id ? actualizado : p)))
+        setMinimoEdit((prev) => {
+          const copia = { ...prev }
+          delete copia[producto.id]
+          return copia
+        })
+      }
+    } finally {
+      setGuardandoMinimo(null)
+    }
+  }
+
   async function eliminarProducto(id, nombre) {
     if (!confirm(`¿Seguro que querés eliminar "${nombre}"?`)) return
     try {
@@ -189,6 +242,10 @@ export default function Stock() {
       </div>
 
       {mensaje && <p className="mb-4 text-green-600 text-sm font-medium">{mensaje}</p>}
+
+      <p className="text-xs text-gray-500 mb-3">
+        💡 Tip: para cargar el stock real, tocá directamente el número en la columna "Stock" de la tabla, escribí la cantidad y presioná Enter o el botón 💾.
+      </p>
 
       {mostrarFormulario && (
         <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-6">
@@ -325,53 +382,99 @@ export default function Stock() {
             </tr>
           </thead>
           <tbody>
-            {productosFiltrados.map((p) => (
-              <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
-                <td className="px-3 py-1.5 text-gray-800 whitespace-nowrap">{p.nombre}</td>
-                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{p.grupo || '-'}</td>
-                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">
-                  {p.categoria === 'mercaderia' ? '🪟 Mercadería' : '🔧 M. prima'}
-                </td>
-                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{p.unidad}</td>
-                <td className="px-3 py-1.5 font-medium text-gray-800 whitespace-nowrap">{p.stock_actual}</td>
-                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{p.stock_minimo}</td>
-                <td className="px-3 py-1.5 text-gray-700 whitespace-nowrap">{formatearPrecio(p.precio_sin_colocacion)}</td>
-                <td className="px-3 py-1.5 text-gray-700 whitespace-nowrap">{formatearPrecio(p.precio_con_colocacion)}</td>
-                <td className="px-3 py-1.5 whitespace-nowrap">
-                  {Number(p.stock_actual) <= Number(p.stock_minimo) ? (
-                    <span className="bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full">⚠ Bajo</span>
-                  ) : (
-                    <span className="bg-green-100 text-green-600 font-medium px-2 py-0.5 rounded-full">✓ Normal</span>
-                  )}
-                </td>
-                <td className="px-3 py-1.5">
-                  <div className="flex gap-1 flex-nowrap">
-                    <button
-                      onClick={() => { setReponiendo(p); setCantidadReponer(''); setEditando(null); setMostrarFormulario(false) }}
-                      className="bg-blue-100 text-blue-600 font-medium px-2 py-0.5 rounded-full hover:bg-blue-200 whitespace-nowrap"
-                    >
-                      + Reponer
-                    </button>
-                    <button
-                      onClick={() => { setEditando(p); setReponiendo(null); setMostrarFormulario(false) }}
-                      className="bg-yellow-100 text-yellow-700 font-medium px-2 py-0.5 rounded-full hover:bg-yellow-200 whitespace-nowrap"
-                    >
-                      ✏ Editar
-                    </button>
-                    <button
-                      onClick={() => eliminarProducto(p.id, p.nombre)}
-                      className="bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full hover:bg-red-200 whitespace-nowrap"
-                    >
-                      🗑
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {productosFiltrados.map((p) => {
+              const valorStockEnEdicion = stockEdit[p.id]
+              const hayEdicionPendiente = valorStockEnEdicion !== undefined && Number(valorStockEnEdicion) !== Number(p.stock_actual)
+              return (
+                <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
+                  <td className="px-3 py-1.5 text-gray-800 whitespace-nowrap">{p.nombre}</td>
+                  <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{p.grupo || '-'}</td>
+                  <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">
+                    {p.categoria === 'mercaderia' ? '🪟 Mercadería' : '🔧 M. prima'}
+                  </td>
+                  <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{p.unidad}</td>
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        step="any"
+                        value={valorStockEnEdicion !== undefined ? valorStockEnEdicion : p.stock_actual}
+                        onChange={(e) => setStockEdit((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') guardarStockDirecto(p) }}
+                        className={`border rounded px-2 py-1 text-xs w-20 bg-white ${hayEdicionPendiente ? 'border-blue-400 text-blue-700 font-medium' : 'border-gray-200 text-gray-800'}`}
+                      />
+                      {hayEdicionPendiente && (
+                        <button
+                          onClick={() => guardarStockDirecto(p)}
+                          disabled={guardandoStock === p.id}
+                          className="bg-blue-100 text-blue-600 px-1.5 py-1 rounded hover:bg-blue-200 disabled:bg-gray-200"
+                          title="Guardar stock"
+                        >
+                          {guardandoStock === p.id ? '...' : '💾'}
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        step="any"
+                        value={minimoEdit[p.id] !== undefined ? minimoEdit[p.id] : p.stock_minimo}
+                        onChange={(e) => setMinimoEdit((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') guardarMinimoDirecto(p) }}
+                        className={`border rounded px-2 py-1 text-xs w-16 bg-white ${minimoEdit[p.id] !== undefined && Number(minimoEdit[p.id]) !== Number(p.stock_minimo) ? 'border-blue-400 text-blue-700 font-medium' : 'border-gray-200 text-gray-500'}`}
+                      />
+                      {minimoEdit[p.id] !== undefined && Number(minimoEdit[p.id]) !== Number(p.stock_minimo) && (
+                        <button
+                          onClick={() => guardarMinimoDirecto(p)}
+                          disabled={guardandoMinimo === p.id}
+                          className="bg-blue-100 text-blue-600 px-1.5 py-1 rounded hover:bg-blue-200 disabled:bg-gray-200"
+                          title="Guardar mínimo"
+                        >
+                          {guardandoMinimo === p.id ? '...' : '💾'}
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-1.5 text-gray-700 whitespace-nowrap">{formatearPrecio(p.precio_sin_colocacion)}</td>
+                  <td className="px-3 py-1.5 text-gray-700 whitespace-nowrap">{formatearPrecio(p.precio_con_colocacion)}</td>
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    {Number(p.stock_actual) <= Number(p.stock_minimo) ? (
+                      <span className="bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full">⚠ Bajo</span>
+                    ) : (
+                      <span className="bg-green-100 text-green-600 font-medium px-2 py-0.5 rounded-full">✓ Normal</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-1.5">
+                    <div className="flex gap-1 flex-nowrap">
+                      <button
+                        onClick={() => { setReponiendo(p); setCantidadReponer(''); setEditando(null); setMostrarFormulario(false) }}
+                        className="bg-blue-100 text-blue-600 font-medium px-2 py-0.5 rounded-full hover:bg-blue-200 whitespace-nowrap"
+                      >
+                        + Reponer
+                      </button>
+                      <button
+                        onClick={() => { setEditando(p); setReponiendo(null); setMostrarFormulario(false) }}
+                        className="bg-yellow-100 text-yellow-700 font-medium px-2 py-0.5 rounded-full hover:bg-yellow-200 whitespace-nowrap"
+                      >
+                        ✏ Editar
+                      </button>
+                      <button
+                        onClick={() => eliminarProducto(p.id, p.nombre)}
+                        className="bg-red-100 text-red-600 font-medium px-2 py-0.5 rounded-full hover:bg-red-200 whitespace-nowrap"
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
             {productosFiltrados.length === 0 && (
               <tr>
                 <td colSpan={10} className="px-3 py-8 text-center text-gray-400">
-                  No se encontraron productos para "{busqueda}"
+                  {busqueda ? `No se encontraron productos para "${busqueda}"` : 'No hay productos cargados todavía.'}
                 </td>
               </tr>
             )}
