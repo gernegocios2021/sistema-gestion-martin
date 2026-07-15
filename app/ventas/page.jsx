@@ -369,9 +369,19 @@ export default function Ventas() {
                 <td className="px-6 py-4 text-sm font-medium text-green-600">${parseFloat(v.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</td>
                 <td className="px-6 py-4 text-sm">
                   {v.factura_cae ? (
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${v.factura_es_produccion ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                      {v.factura_es_produccion ? '✓' : '🧪'} N° {v.factura_numero}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${v.factura_es_produccion ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                        {v.factura_es_produccion ? '✓' : '🧪'} N° {v.factura_numero}
+                      </span>
+                      <a
+                        href={`/api/facturacion/pdf?venta_id=${v.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+                      >
+                        📄 Ver PDF
+                      </a>
+                    </div>
                   ) : (
                     <button
                       onClick={() => abrirModalFactura(v.id)}

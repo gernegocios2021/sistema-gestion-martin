@@ -129,7 +129,8 @@ export async function POST(request) {
     await pool.query(
       `UPDATE ventas SET
         cliente_nombre = $1, cliente_documento = $2, cliente_tipo_documento = $3, cliente_tipo_iva = $4,
-        factura_cae = $5, factura_numero = $6, factura_vto_cae = $7, factura_tipo_comprobante = $8, factura_es_produccion = $9
+        factura_cae = $5, factura_numero = $6, factura_vto_cae = $7, factura_tipo_comprobante = $8, factura_es_produccion = $9,
+        factura_id_comprobante = $11
        WHERE id = $10`,
       [
         cliente_nombre || null,
@@ -141,7 +142,8 @@ export async function POST(request) {
         dataHF.FechaVtoCAE,
         tipoComprobantePorClienteIVA(idTipoIVA),
         esProduccion,
-        venta_id
+        venta_id,
+        dataHF.IdComprobante
       ]
     )
 
