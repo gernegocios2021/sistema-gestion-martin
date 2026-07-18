@@ -43,7 +43,10 @@ export default function Sidebar() {
     <>
       {/* Barra superior solo en celular: título + botón hamburguesa */}
       <div className="md:hidden flex items-center justify-between bg-gray-800 text-white px-4 py-3">
-        <h2 className="text-lg font-bold">GestionPro</h2>
+        <div className="flex items-center gap-2">
+  <img src="/logo-icon.png" alt="GestionPro" className="w-7 h-7 rounded-lg" />
+  <h2 className="text-lg font-bold">GestionPro</h2>
+</div>
         <button
           onClick={() => setAbierto(true)}
           className="text-2xl leading-none"
@@ -72,7 +75,10 @@ export default function Sidebar() {
         `}
       >
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-lg font-bold">GestionPro</h2>
+          <div className="flex items-center gap-2">
+  <img src="/logo-icon.png" alt="GestionPro" className="w-7 h-7 rounded-lg" />
+  <h2 className="text-lg font-bold">GestionPro</h2>
+</div>
           {/* Botón cerrar, solo en celular */}
           <button
             onClick={() => setAbierto(false)}

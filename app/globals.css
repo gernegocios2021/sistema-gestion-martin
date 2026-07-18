@@ -1,26 +1,218 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0f1419;
+  --foreground: #ffffff;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+/* MAIN CONTENT */
+main {
+  background-color: #0f1419 !important;
+  color: #d1d5db !important;
+}
+
+/* CARDS Y CONTENEDORES */
+.rounded-xl,
+.rounded-lg,
+[class*="shadow"] {
+  background-color: #1a202c !important;
+  color: #e5e7eb !important;
+}
+
+/* INPUTS Y SELECTS */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+  background-color: #374151 !important;
+  color: #f3f4f6 !important;
+  border-color: #4b5563 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #ff8c00 !important;
+  outline: none !important;
+}
+
+/* TABLAS */
+table td,
+table th {
+  color: #e5e7eb !important;
+  border-color: #1f2937 !important;
+}
+
+tbody tr {
+  background-color: #1a202c !important;
+}
+
+tbody tr:hover {
+  background-color: #273549 !important;
+}
+
+/* TEXTOS */
+main h1,
+main h2,
+main h3,
+main h4,
+main h5,
+main h6 {
+  color: #ffffff !important;
+}
+
+main p {
+  color: #d1d5db !important;
+}
+
+main .text-gray-700,
+main .text-gray-800,
+main .text-gray-900 {
+  color: #d1d5db !important;
+}
+
+main .text-gray-600 {
+  color: #9ca3af !important;
+}
+
+main label {
+  color: #d1d5db !important;
+}
+
+/* BOTONES - ESTILO POR DEFECTO */
+button {
+  background-color: #374151 !important;
+  color: #ffffff !important;
+  border: 1px solid #4b5563 !important;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background-color: #4b5563 !important;
+}
+
+/* BOTONES AZULES -> NARANJA */
+.bg-blue-600,
+.bg-blue-500,
+.bg-blue-700 {
+  background-color: #ff8c00 !important;
+  color: #ffffff !important;
+}
+
+.bg-blue-600:hover,
+.bg-blue-500:hover,
+.bg-blue-700:hover {
+  background-color: #ff9f1f !important;
+}
+
+/* BOTONES VERDES */
+.bg-green-600 {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+.bg-green-600:hover {
+  background-color: #059669 !important;
+}
+
+/* BOTONES ROJOS */
+.bg-red-600 {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+.bg-red-600:hover {
+  background-color: #dc2626 !important;
+}
+
+/* BOTONES DESHABILITADOS */
+button:disabled {
+  background-color: #4b5563 !important;
+  color: #9ca3af !important;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* LINKS */
+a {
+  color: #ff8c00 !important;
+}
+
+a:hover {
+  color: #ff9f1f !important;
+}
+
+/* COLORES DE ESTADO */
+.text-green-600,
+.text-green-500 {
+  color: #10b981 !important;
+}
+
+.text-red-600,
+.text-red-500 {
+  color: #ef4444 !important;
+}
+
+/* MODO CLARO */
+body.light-theme {
+  background-color: #ffffff !important;
+}
+
+body.light-theme main {
+  background-color: #ffffff !important;
+  color: #171717 !important;
+}
+
+body.light-theme input,
+body.light-theme select,
+body.light-theme textarea {
+  background-color: #f3f4f6 !important;
+  color: #171717 !important;
+  border-color: #d1d5db !important;
+}
+
+body.light-theme .rounded-xl,
+body.light-theme .rounded-lg {
+  background-color: #ffffff !important;
+  color: #171717 !important;
+}
+
+body.light-theme main h1,
+body.light-theme main h2,
+body.light-theme main h3 {
+  color: #171717 !important;
+}
+
+body.light-theme main p,
+body.light-theme main label,
+body.light-theme main .text-gray-700,
+body.light-theme main .text-gray-800 {
+  color: #374151 !important;
+}
+
+body.light-theme tbody tr {
+  background-color: #f9fafb !important;
+}
+
+body.light-theme tbody tr:hover {
+  background-color: #f3f4f6 !important;
+}
+
+body.light-theme table td,
+body.light-theme table th {
+  color: #171717 !important;
+  border-color: #e5e7eb !important;
 }

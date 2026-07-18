@@ -6,11 +6,12 @@ const UNIDADES = ['Unidad', 'Barra', 'Metro', 'Kilo', 'm²', 'Caja', 'Plancha']
 
 function itemVacio() {
   return {
-    producto_id: '',        // id del producto existente, o '' 
+    producto_id: '',        // id del producto existente, o ''
     esNuevo: false,         // si es un producto a crear
     nuevo_producto: { nombre: '', unidad: 'Unidad', categoria: 'materia_prima', stock_minimo: '' },
     cantidad: '',
     precio_unitario: '',
+    busquedaProducto: '',   // texto para filtrar el selector de este ítem
   }
 }
 
@@ -22,6 +23,7 @@ export default function Compras() {
   const [observaciones, setObservaciones] = useState('')
   const [items, setItems] = useState([itemVacio()])
   const [mensaje, setMensaje] = useState('')
+  const [busquedaHistorial, setBusquedaHistorial] = useState('')
 
   useEffect(() => {
     cargarDatos()
@@ -69,13 +71,21 @@ export default function Compras() {
     setItems(items.filter((_, i) => i !== index))
   }
 
+  // Productos filtrados para el selector de un ítem puntual, según su búsqueda
+  function productosFiltradosPara(item) {
+    const texto = item.busquedaProducto.trim().toLowerCase()
+    if (!texto) return productos
+    return productos.filter((p) =>
+      p.nombre?.toLowerCase().includes(texto) || p.grupo?.toLowerCase().includes(texto)
+    )
+  }
+
   const total = items.reduce(
     (sum, item) => sum + (parseFloat(item.cantidad) * parseFloat(item.precio_unitario) || 0),
     0
   )
 
   async function registrarCompra() {
-    // Validar que cada ítem tenga producto (existente o nuevo con nombre) + cantidad + precio
     for (const item of items) {
       const tieneProducto = item.producto_id || (item.esNuevo && item.nuevo_producto.nombre)
       if (!tieneProducto || !item.cantidad || !item.precio_unitario) {
@@ -85,7 +95,6 @@ export default function Compras() {
       }
     }
 
-    // Armar los ítems para enviar
     const itemsEnviar = items.map(item => ({
       producto_id: item.esNuevo ? null : Number(item.producto_id),
       nuevo_producto: item.esNuevo ? item.nuevo_producto : null,
@@ -105,7 +114,7 @@ export default function Compras() {
       setTipo('factura')
       setObservaciones('')
       setItems([itemVacio()])
-      cargarDatos()  // recarga productos (stock actualizado) y compras
+      cargarDatos()
       setTimeout(() => setMensaje(''), 3000)
     } else {
       const data = await res.json()
@@ -113,6 +122,14 @@ export default function Compras() {
       setTimeout(() => setMensaje(''), 4000)
     }
   }
+
+  const comprasFiltradas = compras.filter((c) => {
+    const texto = busquedaHistorial.trim().toLowerCase()
+    if (!texto) return true
+    const enProveedor = c.proveedor?.toLowerCase().includes(texto)
+    const enProductos = c.items?.some((it) => it.nombre?.toLowerCase().includes(texto))
+    return enProveedor || enProductos
+  })
 
   return (
     <div className="p-4 sm:p-8">
@@ -145,16 +162,26 @@ export default function Compras() {
         {items.map((item, index) => (
           <div key={index} className="border border-gray-200 rounded-lg p-4 mb-3">
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              {/* Selector de producto */}
+              {/* Selector de producto con buscador */}
               <div className="sm:col-span-2">
                 <label className="text-xs text-gray-500 mb-1 block">Producto</label>
+                <div className="relative mb-1.5">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Buscar producto..."
+                    value={item.busquedaProducto}
+                    onChange={(e) => actualizarItem(index, 'busquedaProducto', e.target.value)}
+                    className="border rounded-lg pl-7 pr-3 py-1.5 text-xs text-gray-800 bg-white w-full"
+                  />
+                </div>
                 <select
                   className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white w-full"
                   value={item.esNuevo ? '__nuevo__' : item.producto_id}
                   onChange={(e) => cambiarProducto(index, e.target.value)}
                 >
-                  <option value="">Elegí un producto...</option>
-                  {productos.map(p => (
+                  <option value="">Elegí un producto... ({productosFiltradosPara(item).length})</option>
+                  {productosFiltradosPara(item).map(p => (
                     <option key={p.id} value={p.id}>{p.nombre}</option>
                   ))}
                   <option value="__nuevo__">➕ Crear producto nuevo</option>
@@ -219,6 +246,28 @@ export default function Compras() {
 
       {/* Historial de compras */}
       <h2 className="text-lg font-semibold text-gray-700 mb-4">Historial de compras</h2>
+
+      <div className="mb-4">
+        <div className="relative max-w-md">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <input
+            type="text"
+            placeholder="Buscar por proveedor o producto..."
+            value={busquedaHistorial}
+            onChange={(e) => setBusquedaHistorial(e.target.value)}
+            className="border rounded-lg pl-10 pr-4 py-2 text-sm text-gray-800 bg-white w-full shadow-sm"
+          />
+          {busquedaHistorial && (
+            <button
+              onClick={() => setBusquedaHistorial('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="overflow-x-auto bg-white rounded-xl shadow">
         <table className="w-full min-w-[750px]">
           <thead className="bg-gray-800 text-white">
@@ -232,7 +281,7 @@ export default function Compras() {
             </tr>
           </thead>
           <tbody>
-            {compras.map((c) => (
+            {comprasFiltradas.map((c) => (
               <tr key={c.id} className="border-t border-gray-100 hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm text-gray-500">{new Date(c.fecha).toLocaleDateString('es-AR')}</td>
                 <td className="px-6 py-4 text-sm text-gray-800">{c.proveedor}</td>
@@ -248,14 +297,19 @@ export default function Compras() {
                 <td className="px-6 py-4 text-sm text-gray-500">{c.observaciones || '-'}</td>
               </tr>
             ))}
-            {compras.length === 0 && (
+            {comprasFiltradas.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-400 text-sm">No hay compras registradas todavía</td>
+                <td colSpan={6} className="px-6 py-8 text-center text-gray-400 text-sm">
+                  {busquedaHistorial ? `No se encontraron compras para "${busquedaHistorial}"` : 'No hay compras registradas todavía'}
+                </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+      {busquedaHistorial && comprasFiltradas.length > 0 && (
+        <p className="text-xs text-gray-500 mt-2">{comprasFiltradas.length} de {compras.length} compras</p>
+      )}
     </div>
   )
 }
