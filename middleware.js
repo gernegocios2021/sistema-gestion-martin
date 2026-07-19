@@ -14,6 +14,7 @@ const RUTAS_PUBLICAS = [
 const API_PUBLICAS = [
   '/api/login',
   '/api/marcar',
+  '/api/marcar-comida',
   '/api/dispositivo',
   '/api/vincular',
   '/api/empleados', // necesaria para que /confirmar liste empleados al vincular
