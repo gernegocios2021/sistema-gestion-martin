@@ -48,7 +48,13 @@ export default function HorasEmpleado({ params }) {
     }
   }
 
+  // Muestra la fecha tal como viene de la base, sin que JS la corra por zona horaria
+  function formatearFecha(f) {
+    return String(f).slice(0, 10).split('-').reverse().join('/')
+  }
+
   const totalHoras = asistencia.reduce((sum, a) => sum + parseFloat(a.horas_trabajadas || 0), 0)
+  const diasConComida = asistencia.filter(a => a.comida_marcada).length
 
   return (
     <div className="p-8">
@@ -64,12 +70,12 @@ export default function HorasEmpleado({ params }) {
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div><span className="text-gray-500">Cargo:</span> <span className="font-medium text-gray-800">{empleado.cargo || '-'}</span></div>
             <div><span className="text-gray-500">DNI:</span> <span className="font-medium text-gray-800">{empleado.dni || '-'}</span></div>
-            <div><span className="text-gray-500">Ingreso:</span> <span className="font-medium text-gray-800">{empleado.fecha_ingreso ? new Date(empleado.fecha_ingreso).toLocaleDateString('es-AR') : '-'}</span></div>
+            <div><span className="text-gray-500">Ingreso:</span> <span className="font-medium text-gray-800">{empleado.fecha_ingreso ? formatearFecha(empleado.fecha_ingreso) : '-'}</span></div>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl shadow p-6 text-center">
           <p className="text-sm text-gray-500 mb-1">Total horas mes</p>
           <p className="text-3xl font-bold text-blue-600">{totalHoras.toFixed(1)}h</p>
@@ -83,6 +89,11 @@ export default function HorasEmpleado({ params }) {
           <p className="text-3xl font-bold text-purple-600">
             {asistencia.length > 0 ? (totalHoras / asistencia.length).toFixed(1) : 0}h
           </p>
+        </div>
+        <div className="bg-white rounded-xl shadow p-6 text-center">
+          <p className="text-sm text-gray-500 mb-1">Días con comida</p>
+          <p className="text-3xl font-bold" style={{ color: '#f97316' }}>{diasConComida}</p>
+          <p className="text-xs text-gray-500 mt-1">+{(diasConComida * 0.5).toFixed(1)}h en total</p>
         </div>
       </div>
 
@@ -129,20 +140,33 @@ export default function HorasEmpleado({ params }) {
             <th className="text-left px-6 py-3 text-sm">Entrada</th>
             <th className="text-left px-6 py-3 text-sm">Salida</th>
             <th className="text-left px-6 py-3 text-sm">Horas trabajadas</th>
+            <th className="text-left px-6 py-3 text-sm">Comida</th>
           </tr>
         </thead>
         <tbody>
           {asistencia.map((a) => (
             <tr key={a.id} className="border-t border-gray-100 hover:bg-gray-50">
-              <td className="px-6 py-4 text-sm text-gray-800">{new Date(a.fecha).toLocaleDateString('es-AR')}</td>
+              <td className="px-6 py-4 text-sm text-gray-800">{formatearFecha(a.fecha)}</td>
               <td className="px-6 py-4 text-sm text-gray-500">{a.hora_entrada}</td>
               <td className="px-6 py-4 text-sm text-gray-500">{a.hora_salida}</td>
               <td className="px-6 py-4 text-sm font-medium text-blue-600">{parseFloat(a.horas_trabajadas).toFixed(1)}h</td>
+              <td className="px-6 py-4 text-sm">
+                {a.comida_marcada ? (
+                  <span
+                    className="inline-block px-3 py-1 rounded-full text-xs font-bold"
+                    style={{ backgroundColor: '#f97316', color: '#ffffff' }}
+                  >
+                    🍴 +0.5h
+                  </span>
+                ) : (
+                  <span className="text-gray-400 text-xs">—</span>
+                )}
+              </td>
             </tr>
           ))}
           {asistencia.length === 0 && (
             <tr>
-              <td colSpan={4} className="px-6 py-8 text-center text-gray-400 text-sm">No hay registros de asistencia</td>
+              <td colSpan={5} className="px-6 py-8 text-center text-gray-400 text-sm">No hay registros de asistencia</td>
             </tr>
           )}
         </tbody>
