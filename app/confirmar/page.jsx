@@ -16,6 +16,8 @@ export default function Confirmar({ searchParams }) {
   const [empleados, setEmpleados] = useState([])
   const [resultado, setResultado] = useState(null)
   const [procesando, setProcesando] = useState(false)
+  const [marcandoComida, setMarcandoComida] = useState(false)
+  const [resultadoComida, setResultadoComida] = useState(null)
 
   // Para el formulario de vinculación
   const [empleadoElegido, setEmpleadoElegido] = useState('')
@@ -43,14 +45,13 @@ export default function Confirmar({ searchParams }) {
           setEstado('vinculado')
         } else {
           setEstado('sin_vincular')
-          // cargar lista de empleados para el alta
           fetch('/api/empleados').then(r => r.json()).then(setEmpleados)
         }
       })
       .catch(() => setEstado('sin_vincular'))
   }, [])
 
-  // 2. Marcar (celular ya vinculado): el servidor sabe quién es por el device_id
+  // 2. Marcar entrada/salida
   async function marcar() {
     setProcesando(true)
     try {
@@ -61,6 +62,7 @@ export default function Confirmar({ searchParams }) {
       })
       const data = await res.json()
       setResultado({ ...data, empleado: empleadoVinculado })
+      setResultadoComida(null)
     } catch (e) {
       setResultado({ error: 'Error de conexión' })
     } finally {
@@ -68,7 +70,25 @@ export default function Confirmar({ searchParams }) {
     }
   }
 
-  // 3. Vincular este celular a un empleado (requiere clave de admin)
+  // 3. Marcar comida (solo después de salida)
+  async function marcarComida() {
+    setMarcandoComida(true)
+    try {
+      const res = await fetch('/api/marcar-comida', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_id: deviceId }),
+      })
+      const data = await res.json()
+      setResultadoComida(data)
+    } catch (e) {
+      setResultadoComida({ error: 'Error de conexión' })
+    } finally {
+      setMarcandoComida(false)
+    }
+  }
+
+  // 4. Vincular este celular a un empleado
   async function vincular() {
     setErrorVinc(null)
     if (!empleadoElegido) { setErrorVinc('Elegí tu nombre'); return }
@@ -90,7 +110,6 @@ export default function Confirmar({ searchParams }) {
         setErrorVinc(data.error || 'No se pudo vincular')
         return
       }
-      // vinculado OK: pasamos a estado vinculado
       const emp = empleados.find(e => e.id === Number(empleadoElegido))
       setEmpleadoVinculado(emp ? { id: emp.id, nombre: emp.nombre, apellido: emp.apellido } : null)
       setEstado('vinculado')
@@ -99,6 +118,30 @@ export default function Confirmar({ searchParams }) {
     } finally {
       setProcesando(false)
     }
+  }
+
+  // ----- PANTALLA: resultado de comida -----
+  if (resultadoComida) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <div className={`rounded-2xl p-8 text-center max-w-sm w-full ${
+          resultadoComida.success ? 'bg-orange-50 border-2 border-orange-400' :
+          'bg-red-50 border-2 border-red-400'
+        }`}>
+          <p className="text-6xl mb-4">
+            {resultadoComida.success ? '🍴' : '❌'}
+          </p>
+          <p className="text-lg font-bold text-gray-800 mb-2">
+            {resultadoComida.mensaje || resultadoComida.error}
+          </p>
+          {resultadoComida.horas_totales && (
+            <p className="text-sm text-gray-600">
+              Total del día: <strong>{resultadoComida.horas_totales}h</strong>
+            </p>
+          )}
+        </div>
+      </div>
+    )
   }
 
   // ----- PANTALLA: resultado de marcar -----
@@ -119,12 +162,28 @@ export default function Confirmar({ searchParams }) {
           <p className="text-xl font-bold text-gray-800 mb-2">
             {resultado.empleado ? `${resultado.empleado.nombre} ${resultado.empleado.apellido}` : ''}
           </p>
-          <p className="text-lg font-medium text-gray-600">
+          <p className="text-lg font-medium text-gray-600 mb-6">
             {resultado.accion === 'entrada' && `Entrada registrada a las ${resultado.hora} ✓`}
             {resultado.accion === 'salida' && `Salida registrada a las ${resultado.hora} — ${resultado.horas_trabajadas}h trabajadas`}
             {resultado.accion === 'ya_registrado' && resultado.mensaje}
             {resultado.error && resultado.error}
           </p>
+
+          {/* BOTÓN COMIDA: solo aparece después de marcar salida */}
+          {resultado.accion === 'salida' && (
+            <>
+              <button
+                onClick={marcarComida}
+                disabled={marcandoComida}
+                className="w-full py-4 rounded-xl bg-orange-500 text-white font-bold text-base hover:bg-orange-600 disabled:bg-gray-300 transition"
+              >
+                {marcandoComida ? 'Procesando...' : '🍴 No almorcé (+0.5h)'}
+              </button>
+              <p className="text-xs text-gray-500 mt-3">
+                Tocá solo si trabajaste en obra y no almorzaste
+              </p>
+            </>
+          )}
         </div>
       </div>
     )
