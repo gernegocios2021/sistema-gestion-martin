@@ -15,6 +15,7 @@ const API_PUBLICAS = [
   '/api/login',
   '/api/marcar',
   '/api/marcar-comida',
+  '/api/check-ingreso',
   '/api/dispositivo',
   '/api/vincular',
   '/api/empleados', // necesaria para que /confirmar liste empleados al vincular
