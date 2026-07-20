@@ -215,4 +215,76 @@ body.light-theme table td,
 body.light-theme table th {
   color: #171717 !important;
   border-color: #e5e7eb !important;
+  /* ===== PANTALLA DE MARCACIÓN QR (empleados) ===== */
+/* Paleta GestiónPro fija: no depende del modo del celular */
+
+.gp-marcar,
+body.light-theme .gp-marcar {
+  background-color: #0f1c2e !important;
+}
+
+.gp-marcar .gp-card,
+body.light-theme .gp-marcar .gp-card {
+  background-color: #16273d !important;
+  border: 2px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.gp-marcar .gp-btn,
+body.light-theme .gp-marcar .gp-btn {
+  background-color: #ff8c00 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.gp-marcar .gp-btn:disabled,
+body.light-theme .gp-marcar .gp-btn:disabled {
+  background-color: #475569 !important;
+  color: #94a3b8 !important;
+}
+
+.gp-marcar .gp-avatar,
+body.light-theme .gp-marcar .gp-avatar {
+  background-color: #ff8c00 !important;
+  color: #ffffff !important;
+}
+
+.gp-marcar .gp-titulo,
+body.light-theme .gp-marcar .gp-titulo {
+  color: #ffffff !important;
+}
+
+.gp-marcar .gp-sub,
+body.light-theme .gp-marcar .gp-sub {
+  color: #cbd5e1 !important;
+}
+
+.gp-marcar .gp-naranja,
+body.light-theme .gp-marcar .gp-naranja {
+  color: #ff8c00 !important;
+}
+
+.gp-marcar .gp-alerta,
+body.light-theme .gp-marcar .gp-alerta {
+  background-color: rgba(255, 140, 0, 0.15) !important;
+  border: 1px solid rgba(255, 140, 0, 0.45) !important;
+  color: #ffb457 !important;
+}
+
+.gp-marcar .gp-error,
+body.light-theme .gp-marcar .gp-error {
+  color: #fca5a5 !important;
+}
+
+.gp-marcar select,
+.gp-marcar input[type="password"],
+body.light-theme .gp-marcar select,
+body.light-theme .gp-marcar input[type="password"] {
+  background-color: #16273d !important;
+  color: #ffffff !important;
+  border: 2px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.gp-marcar input[type="checkbox"] {
+  accent-color: #ff8c00 !important;
+}
 }
