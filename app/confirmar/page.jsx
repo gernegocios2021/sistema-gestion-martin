@@ -18,6 +18,7 @@ export default function Confirmar({ searchParams }) {
   const [procesando, setProcesando] = useState(false)
   const [marcandoComida, setMarcandoComida] = useState(false)
   const [resultadoComida, setResultadoComida] = useState(null)
+  const [yaIngreso, setYaIngreso] = useState(false) // ¿Ya ingresó hoy?
 
   // Para el formulario de vinculación
   const [empleadoElegido, setEmpleadoElegido] = useState('')
@@ -42,6 +43,8 @@ export default function Confirmar({ searchParams }) {
       .then(data => {
         if (data.vinculado) {
           setEmpleadoVinculado(data.empleado)
+          // Verificar si ya ingresó hoy
+          verificarIngreso(data.empleado.id)
           setEstado('vinculado')
         } else {
           setEstado('sin_vincular')
@@ -50,6 +53,17 @@ export default function Confirmar({ searchParams }) {
       })
       .catch(() => setEstado('sin_vincular'))
   }, [])
+
+  // Verificar si el empleado ya ingresó hoy
+  async function verificarIngreso(empleadoId) {
+    try {
+      const res = await fetch(`/api/check-ingreso?empleado_id=${empleadoId}`)
+      const data = await res.json()
+      setYaIngreso(data.ya_ingreso)
+    } catch (e) {
+      console.log('No se pudo verificar ingreso')
+    }
+  }
 
   // 2. Marcar entrada/salida
   async function marcar() {
@@ -63,6 +77,12 @@ export default function Confirmar({ searchParams }) {
       const data = await res.json()
       setResultado({ ...data, empleado: empleadoVinculado })
       setResultadoComida(null)
+      // Actualizar estado de ingreso
+      if (data.accion === 'entrada') {
+        setYaIngreso(true)
+      } else if (data.accion === 'salida') {
+        setYaIngreso(false)
+      }
     } catch (e) {
       setResultado({ error: 'Error de conexión' })
     } finally {
@@ -112,6 +132,7 @@ export default function Confirmar({ searchParams }) {
       }
       const emp = empleados.find(e => e.id === Number(empleadoElegido))
       setEmpleadoVinculado(emp ? { id: emp.id, nombre: emp.nombre, apellido: emp.apellido } : null)
+      verificarIngreso(Number(empleadoElegido))
       setEstado('vinculado')
     } catch (e) {
       setErrorVinc('Error de conexión')
@@ -216,7 +237,7 @@ export default function Confirmar({ searchParams }) {
             disabled={procesando}
             className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 disabled:bg-gray-300"
           >
-            {procesando ? 'Registrando...' : 'Marcar'}
+            {procesando ? 'Registrando...' : yaIngreso ? '🚪 Marcar salida' : '📍 Marcar ingreso'}
           </button>
         </div>
       </div>
