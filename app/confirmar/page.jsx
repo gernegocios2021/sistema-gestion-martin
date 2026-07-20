@@ -38,6 +38,7 @@ export default function Confirmar({ searchParams }) {
       .then(r => r.json())
       .then(data => {
         if (data.vinculado) {
+          console.log('Empleado vinculado:', data.empleado)
           setEmpleadoVinculado(data.empleado)
           verificarIngreso(data.empleado.id)
           setEstado('vinculado')
@@ -53,9 +54,10 @@ export default function Confirmar({ searchParams }) {
     try {
       const res = await fetch(`/api/check-ingreso?empleado_id=${empleadoId}`)
       const data = await res.json()
+      console.log('Check ingreso:', data)
       setYaIngreso(data.ya_ingreso)
     } catch (e) {
-      console.log('Error verificando ingreso')
+      console.log('Error verificando ingreso:', e)
     }
   }
 
@@ -71,14 +73,16 @@ export default function Confirmar({ searchParams }) {
       setResultado({ ...data, empleado: empleadoVinculado })
       
       if (data.accion === 'entrada') {
-        setYaIngreso(true)
-        // Auto-cerrar después de 3 segundos en entrada
+        // NO cambiar yaIngreso aquí - esperar a que escanee de nuevo
+        // Auto-cerrar después de 3 segundos
         setTimeout(() => {
           setResultado(null)
           setNoAlmorzo(false)
+          // AHORA verificar desde BD
+          verificarIngreso(empleadoVinculado.id)
         }, 3000)
       } else if (data.accion === 'salida') {
-        setYaIngreso(false)
+        // Salida se queda en pantalla para confirmar comida
       }
     } catch (e) {
       setResultado({ error: 'Error de conexión' })
@@ -111,6 +115,7 @@ export default function Confirmar({ searchParams }) {
     } else {
       setResultado(null)
       setNoAlmorzo(false)
+      setYaIngreso(false)
       verificarIngreso(empleadoVinculado.id)
     }
   }
@@ -223,8 +228,8 @@ export default function Confirmar({ searchParams }) {
           <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl mx-auto mb-6">
             {empleadoVinculado?.nombre?.[0]}{empleadoVinculado?.apellido?.[0]}
           </div>
-          <h1 className="text-3xl font-bold text-black mb-8">
-            {empleadoVinculado?.nombre}
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">
+            {empleadoVinculado?.nombre || 'Empleado'}
           </h1>
 
           <button
