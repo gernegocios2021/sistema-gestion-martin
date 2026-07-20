@@ -137,52 +137,57 @@ export default function Confirmar({ searchParams }) {
   // ----- PANTALLA: resultado de marcar -----
   if (resultado) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
-        <div className={`rounded-2xl p-8 text-center max-w-sm w-full ${
-          resultado.accion === 'entrada' ? 'bg-green-50 border-2 border-green-400' :
-          resultado.accion === 'salida' ? 'bg-blue-50 border-2 border-blue-400' :
-          resultado.error ? 'bg-red-50 border-2 border-red-400' :
-          'bg-yellow-50 border-2 border-yellow-400'
-        }`}>
+      <div className="min-h-screen bg-[#0f1c2e] flex items-center justify-center p-6">
+        <div className="w-full max-w-sm bg-[#16273d] border border-white/10 rounded-2xl p-8 text-center shadow-xl">
           <p className="text-6xl mb-4">
             {resultado.accion === 'entrada' ? '✅' :
              resultado.accion === 'salida' ? '👋' :
              resultado.error ? '❌' : '⚠️'}
           </p>
 
-          <p className="text-xl font-bold text-gray-900 mb-2">
+          <p className="text-xl font-bold text-white mb-3">
             {resultado.empleado ? `${resultado.empleado.nombre} ${resultado.empleado.apellido}` : ''}
           </p>
 
           {resultado.accion === 'entrada' && (
-            <p className="text-lg font-medium text-gray-700">
-              Ingreso registrado a las {resultado.hora}
-            </p>
+            <>
+              <p className="text-2xl font-bold text-orange-400 mb-2">
+                ¡Buen trabajo!
+              </p>
+              <p className="text-base text-slate-200">
+                Ingreso registrado a las <strong className="text-white">{resultado.hora}</strong>
+              </p>
+            </>
           )}
 
           {resultado.accion === 'salida' && (
             <>
-              <p className="text-2xl font-bold text-gray-900 mb-2">
+              <p className="text-2xl font-bold text-orange-400 mb-2">
                 ¡Te esperamos mañana!
               </p>
-              <p className="text-base text-gray-700">
-                Salida registrada a las {resultado.hora} — {resultado.horas_trabajadas}h trabajadas
+              <p className="text-base text-slate-200">
+                Salida a las <strong className="text-white">{resultado.hora}</strong>
+              </p>
+              <p className="text-base text-slate-200">
+                <strong className="text-white">{resultado.horas_trabajadas}h</strong> trabajadas
               </p>
               {resultado.comida_ok && (
-                <p className="text-sm font-medium text-orange-600 mt-3">
-                  🍴 Sin almuerzo: +0.5h
-                  {resultado.horas_totales ? ` (total ${resultado.horas_totales}h)` : ''}
-                </p>
+                <div className="mt-4 bg-orange-500/15 border border-orange-500/40 rounded-xl py-3 px-4">
+                  <p className="text-sm font-semibold text-orange-300">
+                    🍴 Sin almuerzo: +0.5h
+                    {resultado.horas_totales ? ` · total ${resultado.horas_totales}h` : ''}
+                  </p>
+                </div>
               )}
             </>
           )}
 
           {resultado.accion === 'ya_registrado' && (
-            <p className="text-lg font-medium text-gray-700">{resultado.mensaje}</p>
+            <p className="text-base text-slate-200">{resultado.mensaje}</p>
           )}
 
           {resultado.error && (
-            <p className="text-lg font-medium text-gray-700">{resultado.error}</p>
+            <p className="text-base text-red-300">{resultado.error}</p>
           )}
         </div>
       </div>
@@ -192,8 +197,8 @@ export default function Confirmar({ searchParams }) {
   // ----- PANTALLA: cargando -----
   if (estado === 'cargando') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
-        <p className="text-gray-500">Cargando...</p>
+      <div className="min-h-screen bg-[#0f1c2e] flex items-center justify-center p-8">
+        <p className="text-slate-300">Cargando...</p>
       </div>
     )
   }
@@ -201,31 +206,32 @@ export default function Confirmar({ searchParams }) {
   // ----- PANTALLA: celular vinculado, listo para marcar -----
   if (estado === 'vinculado') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-sm w-full text-center">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl mx-auto mb-4">
+      <div className="min-h-screen bg-[#0f1c2e] flex items-center justify-center p-6">
+        <div className="w-full max-w-sm text-center">
+          <div className="w-24 h-24 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-3xl mx-auto mb-5 shadow-lg">
             {empleadoVinculado?.nombre?.[0]}{empleadoVinculado?.apellido?.[0]}
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+          <h1 className="text-3xl font-bold text-white mb-1">
             Hola, {empleadoVinculado?.nombre}
           </h1>
 
-          <p className="text-sm text-gray-600 mb-6">
+          <p className="text-base text-slate-300 mb-8">
             {yaIngreso ? 'Registrá tu salida' : 'Registrá tu ingreso'}
           </p>
 
           {/* CHECKBOX: solo aparece cuando va a marcar salida */}
           {yaIngreso && (
-            <label className="flex items-center gap-3 bg-white border-2 border-gray-300 rounded-xl p-4 mb-4 cursor-pointer text-left">
+            <label className="flex items-center gap-4 bg-[#16273d] border-2 border-white/15 rounded-2xl p-5 mb-5 cursor-pointer text-left active:border-orange-500 transition">
               <input
                 type="checkbox"
                 checked={noAlmorzo}
                 onChange={e => setNoAlmorzo(e.target.checked)}
-                className="w-6 h-6 accent-orange-500"
+                className="w-7 h-7 accent-orange-500 shrink-0"
               />
-              <span className="text-sm font-medium text-gray-900">
-                No almorcé (+0.5h)
+              <span className="text-base font-semibold text-white leading-tight">
+                No almorcé
+                <span className="block text-sm font-normal text-slate-400">Suma 0.5h al día</span>
               </span>
             </label>
           )}
@@ -233,9 +239,7 @@ export default function Confirmar({ searchParams }) {
           <button
             onClick={marcar}
             disabled={procesando}
-            className={`w-full py-4 rounded-xl text-white font-bold text-lg disabled:bg-gray-300 ${
-              yaIngreso ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+            className="w-full py-5 rounded-2xl bg-orange-500 text-white font-bold text-xl shadow-lg active:bg-orange-600 disabled:bg-slate-600 disabled:text-slate-400 transition"
           >
             {procesando ? 'Registrando...' : yaIngreso ? 'Marcar salida' : 'Marcar ingreso'}
           </button>
@@ -246,42 +250,42 @@ export default function Confirmar({ searchParams }) {
 
   // ----- PANTALLA: celular sin vincular, alta inicial -----
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-sm w-full">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1 text-center">Vincular este celular</h1>
-        <p className="text-sm text-gray-600 mb-6 text-center">
+    <div className="min-h-screen bg-[#0f1c2e] flex items-center justify-center p-6">
+      <div className="w-full max-w-sm">
+        <h1 className="text-2xl font-bold text-white mb-2 text-center">Vincular este celular</h1>
+        <p className="text-sm text-slate-300 mb-6 text-center">
           Este teléfono todavía no está registrado. Elegí tu nombre y pedile al encargado que ingrese la clave.
         </p>
 
-        <label className="block text-sm font-medium text-gray-700 mb-1">Tu nombre</label>
+        <label className="block text-sm font-semibold text-slate-200 mb-2">Tu nombre</label>
         <select
           value={empleadoElegido}
           onChange={e => setEmpleadoElegido(e.target.value)}
-          className="w-full p-3 border rounded-xl mb-4 bg-white text-gray-800"
+          className="w-full p-4 rounded-xl mb-5 bg-[#16273d] border-2 border-white/15 text-white"
         >
-          <option value="" className="text-gray-800">Elegí tu nombre...</option>
+          <option value="" className="bg-[#16273d] text-white">Elegí tu nombre...</option>
           {empleados.map(e => (
-            <option key={e.id} value={e.id} className="text-gray-800">{e.nombre} {e.apellido}</option>
+            <option key={e.id} value={e.id} className="bg-[#16273d] text-white">{e.nombre} {e.apellido}</option>
           ))}
         </select>
 
-        <label className="block text-sm font-medium text-gray-700 mb-1">Clave del encargado</label>
+        <label className="block text-sm font-semibold text-slate-200 mb-2">Clave del encargado</label>
         <input
           type="password"
           value={claveAdmin}
           onChange={e => setClaveAdmin(e.target.value)}
           placeholder="La ingresa el encargado"
-          className="w-full p-3 border rounded-xl mb-4 bg-white text-gray-800"
+          className="w-full p-4 rounded-xl mb-5 bg-[#16273d] border-2 border-white/15 text-white placeholder:text-slate-500"
         />
 
         {errorVinc && (
-          <p className="text-red-600 text-sm mb-4">{errorVinc}</p>
+          <p className="text-red-300 text-sm mb-4">{errorVinc}</p>
         )}
 
         <button
           onClick={vincular}
           disabled={procesando}
-          className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:bg-gray-300"
+          className="w-full py-4 rounded-xl bg-orange-500 text-white font-bold text-lg active:bg-orange-600 disabled:bg-slate-600 disabled:text-slate-400 transition"
         >
           {procesando ? 'Vinculando...' : 'Vincular celular'}
         </button>
