@@ -11,20 +11,20 @@ export default function Confirmar({ searchParams }) {
   const { token } = use(searchParams)
 
   const [deviceId, setDeviceId] = useState(null)
-  const [estado, setEstado] = useState('cargando') // cargando | vinculado | sin_vincular
+  const [estado, setEstado] = useState('cargando')
   const [empleadoVinculado, setEmpleadoVinculado] = useState(null)
   const [empleados, setEmpleados] = useState([])
   const [resultado, setResultado] = useState(null)
   const [procesando, setProcesando] = useState(false)
   const [marcandoComida, setMarcandoComida] = useState(false)
   const [resultadoComida, setResultadoComida] = useState(null)
+  const [yaIngreso, setYaIngreso] = useState(false)
+  const [noAlmorzo, setNoAlmorzo] = useState(false)
 
-  // Para el formulario de vinculación
   const [empleadoElegido, setEmpleadoElegido] = useState('')
   const [claveAdmin, setClaveAdmin] = useState('')
   const [errorVinc, setErrorVinc] = useState(null)
 
-  // 1. Al abrir: obtener (o crear) el device_id y consultar si está vinculado
   useEffect(() => {
     let id = localStorage.getItem('device_id')
     if (!id) {
@@ -42,6 +42,7 @@ export default function Confirmar({ searchParams }) {
       .then(data => {
         if (data.vinculado) {
           setEmpleadoVinculado(data.empleado)
+          verificarIngreso(data.empleado.id)
           setEstado('vinculado')
         } else {
           setEstado('sin_vincular')
@@ -51,7 +52,16 @@ export default function Confirmar({ searchParams }) {
       .catch(() => setEstado('sin_vincular'))
   }, [])
 
-  // 2. Marcar entrada/salida
+  async function verificarIngreso(empleadoId) {
+    try {
+      const res = await fetch(`/api/check-ingreso?empleado_id=${empleadoId}`)
+      const data = await res.json()
+      setYaIngreso(data.ya_ingreso)
+    } catch (e) {
+      console.log('Error verificando ingreso')
+    }
+  }
+
   async function marcar() {
     setProcesando(true)
     try {
@@ -63,6 +73,18 @@ export default function Confirmar({ searchParams }) {
       const data = await res.json()
       setResultado({ ...data, empleado: empleadoVinculado })
       setResultadoComida(null)
+
+      // Si es salida y tiene marcado "No almorcé", marcar comida automáticamente
+      if (data.accion === 'salida' && noAlmorzo) {
+        setTimeout(() => marcarComida(), 500)
+      }
+
+      // Actualizar estado después de marcar
+      if (data.accion === 'entrada') {
+        setYaIngreso(true)
+      } else if (data.accion === 'salida') {
+        setYaIngreso(false)
+      }
     } catch (e) {
       setResultado({ error: 'Error de conexión' })
     } finally {
@@ -70,7 +92,6 @@ export default function Confirmar({ searchParams }) {
     }
   }
 
-  // 3. Marcar comida (solo después de salida)
   async function marcarComida() {
     setMarcandoComida(true)
     try {
@@ -81,6 +102,7 @@ export default function Confirmar({ searchParams }) {
       })
       const data = await res.json()
       setResultadoComida(data)
+      setNoAlmorzo(false)
     } catch (e) {
       setResultadoComida({ error: 'Error de conexión' })
     } finally {
@@ -88,7 +110,6 @@ export default function Confirmar({ searchParams }) {
     }
   }
 
-  // 4. Vincular este celular a un empleado
   async function vincular() {
     setErrorVinc(null)
     if (!empleadoElegido) { setErrorVinc('Elegí tu nombre'); return }
@@ -112,6 +133,7 @@ export default function Confirmar({ searchParams }) {
       }
       const emp = empleados.find(e => e.id === Number(empleadoElegido))
       setEmpleadoVinculado(emp ? { id: emp.id, nombre: emp.nombre, apellido: emp.apellido } : null)
+      verificarIngreso(Number(empleadoElegido))
       setEstado('vinculado')
     } catch (e) {
       setErrorVinc('Error de conexión')
@@ -120,7 +142,6 @@ export default function Confirmar({ searchParams }) {
     }
   }
 
-  // ----- PANTALLA: resultado de comida -----
   if (resultadoComida) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
@@ -144,7 +165,6 @@ export default function Confirmar({ searchParams }) {
     )
   }
 
-  // ----- PANTALLA: resultado de marcar -----
   if (resultado) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
@@ -169,7 +189,6 @@ export default function Confirmar({ searchParams }) {
             {resultado.error && resultado.error}
           </p>
 
-          {/* BOTÓN COMIDA: solo aparece después de marcar salida */}
           {resultado.accion === 'salida' && (
             <>
               <button
@@ -189,7 +208,6 @@ export default function Confirmar({ searchParams }) {
     )
   }
 
-  // ----- PANTALLA: cargando -----
   if (estado === 'cargando') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
@@ -198,18 +216,33 @@ export default function Confirmar({ searchParams }) {
     )
   }
 
-  // ----- PANTALLA: celular vinculado, listo para marcar -----
   if (estado === 'vinculado') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="max-w-sm w-full text-center">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl mx-auto mb-4">
+          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl mx-auto mb-6">
             {empleadoVinculado?.nombre?.[0]}{empleadoVinculado?.apellido?.[0]}
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Hola, {empleadoVinculado?.nombre}
           </h1>
-          <p className="text-sm text-gray-500 mb-8">Tocá el botón para registrar tu marca</p>
+          <p className="text-sm text-gray-600 mb-8">
+            {yaIngreso ? 'Tocá el botón para registrar tu salida' : 'Tocá el botón para registrar tu ingreso'}
+          </p>
+
+          {yaIngreso && (
+            <div className="bg-white rounded-lg p-4 mb-6 text-left border border-gray-200">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={noAlmorzo}
+                  onChange={(e) => setNoAlmorzo(e.target.checked)}
+                  className="w-5 h-5"
+                />
+                <span className="text-sm font-medium text-gray-700">No almorcé (+0.5h)</span>
+              </label>
+            </div>
+          )}
 
           <button
             onClick={marcar}
@@ -223,7 +256,6 @@ export default function Confirmar({ searchParams }) {
     )
   }
 
-  // ----- PANTALLA: celular sin vincular, alta inicial -----
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-sm w-full">
