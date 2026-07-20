@@ -16,7 +16,8 @@ export default function Confirmar({ searchParams }) {
   const [resultado, setResultado] = useState(null)
   const [procesando, setProcesando] = useState(false)
   const [yaIngreso, setYaIngreso] = useState(false)
-  const [noAlmorzo, setNoAlmorzo] = useState(false) // Checkbox "No almorcé"
+  const [noAlmorzo, setNoAlmorzo] = useState(false)
+  const [comidaConfirmada, setComidaConfirmada] = useState(false)
 
   const [empleadoElegido, setEmpleadoElegido] = useState('')
   const [claveAdmin, setClaveAdmin] = useState('')
@@ -59,7 +60,6 @@ export default function Confirmar({ searchParams }) {
     }
   }
 
-  // Marcar entrada/salida + comida si corresponde
   async function marcar() {
     setProcesando(true)
     try {
@@ -71,16 +71,18 @@ export default function Confirmar({ searchParams }) {
       const data = await res.json()
       setResultado({ ...data, empleado: empleadoVinculado })
       
-      // Si es salida y tiene marcado "No almorcé", marcar comida automáticamente
-      if (data.accion === 'salida' && noAlmorzo) {
-        setTimeout(() => marcarComida(), 500)
-      }
-      
-      // Actualizar estado
+      // Actualizar estado DESPUÉS de marcar
       if (data.accion === 'entrada') {
         setYaIngreso(true)
+        // Auto-volver a pantalla principal después de 3 segundos
+        setTimeout(() => {
+          setResultado(null)
+          setNoAlmorzo(false)
+          setComidaConfirmada(false)
+        }, 3000)
       } else if (data.accion === 'salida') {
         setYaIngreso(false)
+        // NO volver automáticamente: esperar que confirme comida si corresponde
       }
     } catch (e) {
       setResultado({ error: 'Error de conexión' })
@@ -97,15 +99,27 @@ export default function Confirmar({ searchParams }) {
         body: JSON.stringify({ device_id: deviceId }),
       })
       const data = await res.json()
-      // Actualizar resultado con info de comida
       setResultado(prev => ({
         ...prev,
         comida_marcada: data.success,
         mensaje_comida: data.mensaje
       }))
-      setNoAlmorzo(false) // Limpiar checkbox
+      setComidaConfirmada(true)
+      setNoAlmorzo(false)
     } catch (e) {
       console.log('Error al marcar comida')
+    }
+  }
+
+  async function confirmarSalida() {
+    if (noAlmorzo) {
+      // Marcar comida
+      await marcarComida()
+    } else {
+      // Solo cierra sin marcar comida
+      setResultado(null)
+      setNoAlmorzo(false)
+      verificarIngreso(empleadoVinculado.id)
     }
   }
 
@@ -141,10 +155,11 @@ export default function Confirmar({ searchParams }) {
     }
   }
 
-  // Volver a pantalla vinculado
-  function volver() {
+  function volverAlMenu() {
     setResultado(null)
     setNoAlmorzo(false)
+    setComidaConfirmada(false)
+    verificarIngreso(empleadoVinculado.id)
   }
 
   // ----- PANTALLA: resultado de marcar -----
@@ -165,15 +180,15 @@ export default function Confirmar({ searchParams }) {
           <p className="text-xl font-bold text-gray-800 mb-2">
             {resultado.empleado ? `${resultado.empleado.nombre} ${resultado.empleado.apellido}` : ''}
           </p>
-          <p className="text-lg font-medium text-gray-600 mb-4">
+          <p className="text-lg font-medium text-gray-600 mb-6">
             {resultado.accion === 'entrada' && `Entrada registrada a las ${resultado.hora} ✓`}
             {resultado.accion === 'salida' && `Salida registrada a las ${resultado.hora} — ${resultado.horas_trabajadas}h trabajadas`}
             {resultado.accion === 'ya_registrado' && resultado.mensaje}
             {resultado.error && resultado.error}
           </p>
 
-          {/* COMIDA: SOLO SI ES SALIDA Y NO SE MARCÓ AÚN */}
-          {resultado.accion === 'salida' && !resultado.comida_marcada && (
+          {/* COMIDA: SOLO EN SALIDA, ANTES DE CONFIRMAR */}
+          {resultado.accion === 'salida' && !comidaConfirmada && (
             <>
               <div className="bg-white rounded-lg p-4 mb-4">
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -188,40 +203,37 @@ export default function Confirmar({ searchParams }) {
               </div>
 
               <button
-                onClick={marcar}
+                onClick={confirmarSalida}
                 disabled={procesando}
-                className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-base hover:bg-blue-700 disabled:bg-gray-300 transition mb-2"
+                className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-base hover:bg-blue-700 disabled:bg-gray-300 transition"
               >
                 {procesando ? 'Procesando...' : '✓ Confirmar salida'}
               </button>
-              <p className="text-xs text-gray-500">
-                Tocá si trabajaste en obra y no almorzaste
-              </p>
             </>
           )}
 
-          {/* COMIDA YA MARCADA */}
-          {resultado.comida_marcada && (
+          {/* COMIDA CONFIRMADA */}
+          {comidaConfirmada && (
             <>
               <p className="text-lg font-bold text-orange-600 mb-4">
-                🍴 {resultado.mensaje_comida}
+                🍴 {resultado.mensaje_comida || 'Almuerzo registrado'}
               </p>
               <button
-                onClick={volver}
+                onClick={volverAlMenu}
                 className="w-full py-3 rounded-xl bg-gray-600 text-white font-bold hover:bg-gray-700"
               >
-                ← Volver
+                ← Volver al menú
               </button>
             </>
           )}
 
-          {/* ENTRADA: BOTÓN VOLVER */}
-          {resultado.accion === 'entrada' && (
+          {/* SIN COMIDA */}
+          {resultado.accion === 'salida' && !resultado.comida_marcada && comidaConfirmada === false && !noAlmorzo && (
             <button
-              onClick={volver}
+              onClick={volverAlMenu}
               className="w-full py-3 rounded-xl bg-gray-600 text-white font-bold hover:bg-gray-700"
             >
-              ← Volver
+              ← Volver al menú
             </button>
           )}
         </div>
@@ -249,15 +261,15 @@ export default function Confirmar({ searchParams }) {
           <h1 className="text-2xl font-bold text-gray-800 mb-1">
             Hola, {empleadoVinculado?.nombre}
           </h1>
-          <p className="text-sm text-gray-500 mb-8">Tocá el botón para registrar tu marca</p>
+          <p className="text-sm text-gray-500 mb-8">Escanea el QR para registrar tu marca</p>
 
-          <button
-            onClick={marcar}
-            disabled={procesando}
-            className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 disabled:bg-gray-300 transition"
-          >
-            {procesando ? 'Registrando...' : yaIngreso ? '🚪 Marcar salida' : '📍 Marcar ingreso'}
-          </button>
+          <div className="text-5xl mb-4">
+            {yaIngreso ? '🚪' : '📍'}
+          </div>
+
+          <p className="text-sm text-gray-600 font-medium mb-6">
+            {yaIngreso ? 'Listo para marcar salida' : 'Listo para marcar ingreso'}
+          </p>
         </div>
       </div>
     )
