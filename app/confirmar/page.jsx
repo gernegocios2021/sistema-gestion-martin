@@ -137,43 +137,43 @@ export default function Confirmar({ searchParams }) {
   // ----- PANTALLA: resultado de marcar -----
   if (resultado) {
     return (
-      <div className="min-h-screen bg-[#0f1c2e] flex items-center justify-center p-6">
-        <div className="w-full max-w-sm bg-[#16273d] border border-white/10 rounded-2xl p-8 text-center shadow-xl">
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#0f1c2e' }}>
+        <div className="w-full max-w-sm rounded-2xl p-8 text-center" style={{ backgroundColor: '#16273d', border: '1px solid rgba(255,255,255,0.12)' }}>
           <p className="text-6xl mb-4">
             {resultado.accion === 'entrada' ? '✅' :
              resultado.accion === 'salida' ? '👋' :
              resultado.error ? '❌' : '⚠️'}
           </p>
 
-          <p className="text-xl font-bold text-white mb-3">
+          <p className="text-xl font-bold mb-3" style={{ color: '#ffffff' }}>
             {resultado.empleado ? `${resultado.empleado.nombre} ${resultado.empleado.apellido}` : ''}
           </p>
 
           {resultado.accion === 'entrada' && (
             <>
-              <p className="text-2xl font-bold text-orange-400 mb-2">
+              <p className="text-2xl font-bold mb-2" style={{ color: '#f97316' }}>
                 ¡Buen trabajo!
               </p>
-              <p className="text-base text-slate-200">
-                Ingreso registrado a las <strong className="text-white">{resultado.hora}</strong>
+              <p className="text-base" style={{ color: '#cbd5e1' }}>
+                Ingreso registrado a las <strong style={{ color: '#ffffff' }}>{resultado.hora}</strong>
               </p>
             </>
           )}
 
           {resultado.accion === 'salida' && (
             <>
-              <p className="text-2xl font-bold text-orange-400 mb-2">
+              <p className="text-2xl font-bold mb-2" style={{ color: '#f97316' }}>
                 ¡Te esperamos mañana!
               </p>
-              <p className="text-base text-slate-200">
-                Salida a las <strong className="text-white">{resultado.hora}</strong>
+              <p className="text-base" style={{ color: '#cbd5e1' }}>
+                Salida a las <strong style={{ color: '#ffffff' }}>{resultado.hora}</strong>
               </p>
-              <p className="text-base text-slate-200">
-                <strong className="text-white">{resultado.horas_trabajadas}h</strong> trabajadas
+              <p className="text-base" style={{ color: '#cbd5e1' }}>
+                <strong style={{ color: '#ffffff' }}>{resultado.horas_trabajadas}h</strong> trabajadas
               </p>
               {resultado.comida_ok && (
-                <div className="mt-4 bg-orange-500/15 border border-orange-500/40 rounded-xl py-3 px-4">
-                  <p className="text-sm font-semibold text-orange-300">
+                <div className="mt-4 rounded-xl py-3 px-4" style={{ backgroundColor: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.4)' }}>
+                  <p className="text-sm font-semibold" style={{ color: '#fdba74' }}>
                     🍴 Sin almuerzo: +0.5h
                     {resultado.horas_totales ? ` · total ${resultado.horas_totales}h` : ''}
                   </p>
@@ -183,11 +183,11 @@ export default function Confirmar({ searchParams }) {
           )}
 
           {resultado.accion === 'ya_registrado' && (
-            <p className="text-base text-slate-200">{resultado.mensaje}</p>
+            <p className="text-base" style={{ color: '#cbd5e1' }}>{resultado.mensaje}</p>
           )}
 
           {resultado.error && (
-            <p className="text-base text-red-300">{resultado.error}</p>
+            <p className="text-base" style={{ color: '#fca5a5' }}>{resultado.error}</p>
           )}
         </div>
       </div>
@@ -197,8 +197,8 @@ export default function Confirmar({ searchParams }) {
   // ----- PANTALLA: cargando -----
   if (estado === 'cargando') {
     return (
-      <div className="min-h-screen bg-[#0f1c2e] flex items-center justify-center p-8">
-        <p className="text-slate-300">Cargando...</p>
+      <div className="min-h-screen flex items-center justify-center p-8" style={{ backgroundColor: '#0f1c2e' }}>
+        <p style={{ color: '#cbd5e1' }}>Cargando...</p>
       </div>
     )
   }
@@ -206,32 +206,39 @@ export default function Confirmar({ searchParams }) {
   // ----- PANTALLA: celular vinculado, listo para marcar -----
   if (estado === 'vinculado') {
     return (
-      <div className="min-h-screen bg-[#0f1c2e] flex items-center justify-center p-6">
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#0f1c2e' }}>
         <div className="w-full max-w-sm text-center">
-          <div className="w-24 h-24 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-3xl mx-auto mb-5 shadow-lg">
+          <div
+            className="w-24 h-24 rounded-full flex items-center justify-center font-bold text-3xl mx-auto mb-5"
+            style={{ backgroundColor: '#f97316', color: '#ffffff' }}
+          >
             {empleadoVinculado?.nombre?.[0]}{empleadoVinculado?.apellido?.[0]}
           </div>
 
-          <h1 className="text-3xl font-bold text-white mb-1">
+          <h1 className="text-3xl font-bold mb-1" style={{ color: '#ffffff' }}>
             Hola, {empleadoVinculado?.nombre}
           </h1>
 
-          <p className="text-base text-slate-300 mb-8">
+          <p className="text-base mb-8" style={{ color: '#cbd5e1' }}>
             {yaIngreso ? 'Registrá tu salida' : 'Registrá tu ingreso'}
           </p>
 
           {/* CHECKBOX: solo aparece cuando va a marcar salida */}
           {yaIngreso && (
-            <label className="flex items-center gap-4 bg-[#16273d] border-2 border-white/15 rounded-2xl p-5 mb-5 cursor-pointer text-left active:border-orange-500 transition">
+            <label
+              className="flex items-center gap-4 rounded-2xl p-5 mb-5 cursor-pointer text-left"
+              style={{ backgroundColor: '#16273d', border: '2px solid rgba(255,255,255,0.15)' }}
+            >
               <input
                 type="checkbox"
                 checked={noAlmorzo}
                 onChange={e => setNoAlmorzo(e.target.checked)}
-                className="w-7 h-7 accent-orange-500 shrink-0"
+                className="w-7 h-7 shrink-0"
+                style={{ accentColor: '#f97316' }}
               />
-              <span className="text-base font-semibold text-white leading-tight">
+              <span className="text-base font-semibold leading-tight" style={{ color: '#ffffff' }}>
                 No almorcé
-                <span className="block text-sm font-normal text-slate-400">Suma 0.5h al día</span>
+                <span className="block text-sm font-normal" style={{ color: '#94a3b8' }}>Suma 0.5h al día</span>
               </span>
             </label>
           )}
@@ -239,7 +246,11 @@ export default function Confirmar({ searchParams }) {
           <button
             onClick={marcar}
             disabled={procesando}
-            className="w-full py-5 rounded-2xl bg-orange-500 text-white font-bold text-xl shadow-lg active:bg-orange-600 disabled:bg-slate-600 disabled:text-slate-400 transition"
+            className="w-full py-5 rounded-2xl font-bold text-xl"
+            style={{
+              backgroundColor: procesando ? '#475569' : '#f97316',
+              color: procesando ? '#94a3b8' : '#ffffff',
+            }}
           >
             {procesando ? 'Registrando...' : yaIngreso ? 'Marcar salida' : 'Marcar ingreso'}
           </button>
@@ -250,42 +261,48 @@ export default function Confirmar({ searchParams }) {
 
   // ----- PANTALLA: celular sin vincular, alta inicial -----
   return (
-    <div className="min-h-screen bg-[#0f1c2e] flex items-center justify-center p-6">
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#0f1c2e' }}>
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-white mb-2 text-center">Vincular este celular</h1>
-        <p className="text-sm text-slate-300 mb-6 text-center">
+        <h1 className="text-2xl font-bold mb-2 text-center" style={{ color: '#ffffff' }}>Vincular este celular</h1>
+        <p className="text-sm mb-6 text-center" style={{ color: '#cbd5e1' }}>
           Este teléfono todavía no está registrado. Elegí tu nombre y pedile al encargado que ingrese la clave.
         </p>
 
-        <label className="block text-sm font-semibold text-slate-200 mb-2">Tu nombre</label>
+        <label className="block text-sm font-semibold mb-2" style={{ color: '#e2e8f0' }}>Tu nombre</label>
         <select
           value={empleadoElegido}
           onChange={e => setEmpleadoElegido(e.target.value)}
-          className="w-full p-4 rounded-xl mb-5 bg-[#16273d] border-2 border-white/15 text-white"
+          className="w-full p-4 rounded-xl mb-5"
+          style={{ backgroundColor: '#16273d', border: '2px solid rgba(255,255,255,0.15)', color: '#ffffff' }}
         >
-          <option value="" className="bg-[#16273d] text-white">Elegí tu nombre...</option>
+          <option value="" style={{ backgroundColor: '#16273d', color: '#ffffff' }}>Elegí tu nombre...</option>
           {empleados.map(e => (
-            <option key={e.id} value={e.id} className="bg-[#16273d] text-white">{e.nombre} {e.apellido}</option>
+            <option key={e.id} value={e.id} style={{ backgroundColor: '#16273d', color: '#ffffff' }}>{e.nombre} {e.apellido}</option>
           ))}
         </select>
 
-        <label className="block text-sm font-semibold text-slate-200 mb-2">Clave del encargado</label>
+        <label className="block text-sm font-semibold mb-2" style={{ color: '#e2e8f0' }}>Clave del encargado</label>
         <input
           type="password"
           value={claveAdmin}
           onChange={e => setClaveAdmin(e.target.value)}
           placeholder="La ingresa el encargado"
-          className="w-full p-4 rounded-xl mb-5 bg-[#16273d] border-2 border-white/15 text-white placeholder:text-slate-500"
+          className="w-full p-4 rounded-xl mb-5"
+          style={{ backgroundColor: '#16273d', border: '2px solid rgba(255,255,255,0.15)', color: '#ffffff' }}
         />
 
         {errorVinc && (
-          <p className="text-red-300 text-sm mb-4">{errorVinc}</p>
+          <p className="text-sm mb-4" style={{ color: '#fca5a5' }}>{errorVinc}</p>
         )}
 
         <button
           onClick={vincular}
           disabled={procesando}
-          className="w-full py-4 rounded-xl bg-orange-500 text-white font-bold text-lg active:bg-orange-600 disabled:bg-slate-600 disabled:text-slate-400 transition"
+          className="w-full py-4 rounded-xl font-bold text-lg"
+          style={{
+            backgroundColor: procesando ? '#475569' : '#f97316',
+            color: procesando ? '#94a3b8' : '#ffffff',
+          }}
         >
           {procesando ? 'Vinculando...' : 'Vincular celular'}
         </button>
