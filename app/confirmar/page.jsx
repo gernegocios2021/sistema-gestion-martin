@@ -63,34 +63,51 @@ export default function Confirmar({ searchParams }) {
   }
 
   async function marcar() {
-    setProcesando(true)
-    try {
-      const res = await fetch('/api/marcar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ device_id: deviceId, token }),
-      })
-      const data = await res.json()
-      setResultado({ ...data, empleado: empleadoVinculado })
-      setResultadoComida(null)
-
-      // Si es salida y tiene marcado "No almorcé", marcar comida automáticamente
-      if (data.accion === 'salida' && noAlmorzo) {
-        setTimeout(() => marcarComida(), 500)
+  setProcesando(true)
+  try {
+    // Si es salida, obtener un token nuevo
+    let tokenActual = token
+    if (yaIngreso) {
+      try {
+        const resToken = await fetch('/api/marcar')
+        const dataToken = await resToken.json()
+        tokenActual = dataToken.token
+      } catch (e) {
+        console.log('Error obteniendo token nuevo')
       }
-
-      // Actualizar estado después de marcar
-      if (data.accion === 'entrada') {
-        setYaIngreso(true)
-      } else if (data.accion === 'salida') {
-        setYaIngreso(false)
-      }
-    } catch (e) {
-      setResultado({ error: 'Error de conexión' })
-    } finally {
-      setProcesando(false)
     }
+
+    const res = await fetch('/api/marcar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device_id: deviceId, token: tokenActual }),
+    })
+    const data = await res.json()
+    setResultado({ ...data, empleado: empleadoVinculado })
+    setResultadoComida(null)
+
+    // Si es salida y tiene marcado "No almorcé", marcar comida automáticamente
+    if (data.accion === 'salida' && noAlmorzo) {
+      setTimeout(() => marcarComida(), 500)
+    }
+
+    // Actualizar estado después de marcar
+    if (data.accion === 'entrada') {
+      setYaIngreso(true)
+      // Auto-cerrar después de 3 segundos
+      setTimeout(() => {
+        setResultado(null)
+        setNoAlmorzo(false)
+      }, 3000)
+    } else if (data.accion === 'salida') {
+      setYaIngreso(false)
+    }
+  } catch (e) {
+    setResultado({ error: 'Error de conexión' })
+  } finally {
+    setProcesando(false)
   }
+}
 
   async function marcarComida() {
     setMarcandoComida(true)
