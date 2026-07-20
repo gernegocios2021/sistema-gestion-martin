@@ -1,5 +1,6 @@
 import pool from '../../db'
 import jwt from 'jsonwebtoken'
+import { revalidatePath } from 'next/cache'
 
 const SECRET = process.env.JWT_SECRET || 'sistema_martin_qr_2026'
 
@@ -61,6 +62,8 @@ export async function POST(request) {
         'INSERT INTO asistencia (empleado_id, fecha, hora_entrada) VALUES ($1, $2, $3)',
         [empleado_id, hoy, horaActual]
       )
+      // Revalidar dashboard cuando hay entrada
+      revalidatePath('/')
       return Response.json({ accion: 'entrada', hora: horaActual })
     } else if (!registro.rows[0].hora_salida) {
       const entrada = new Date(`2000-01-01T${registro.rows[0].hora_entrada}`)
@@ -71,6 +74,10 @@ export async function POST(request) {
         'UPDATE asistencia SET hora_salida = $1, horas_trabajadas = $2 WHERE empleado_id = $3 AND fecha = $4',
         [horaActual, horas, empleado_id, hoy]
       )
+      
+      // 🔑 REVALIDAR DASHBOARD AL MARCAR SALIDA
+      revalidatePath('/')
+      
       return Response.json({ accion: 'salida', hora: horaActual, horas_trabajadas: horas.toFixed(1) })
     } else {
       return Response.json({ accion: 'ya_registrado', mensaje: 'Ya tenés entrada y salida registradas hoy' })
