@@ -17,7 +17,6 @@ export default function Confirmar({ searchParams }) {
   const [procesando, setProcesando] = useState(false)
   const [yaIngreso, setYaIngreso] = useState(false)
   const [noAlmorzo, setNoAlmorzo] = useState(false)
-  const [comidaConfirmada, setComidaConfirmada] = useState(false)
 
   const [empleadoElegido, setEmpleadoElegido] = useState('')
   const [claveAdmin, setClaveAdmin] = useState('')
@@ -56,7 +55,7 @@ export default function Confirmar({ searchParams }) {
       const data = await res.json()
       setYaIngreso(data.ya_ingreso)
     } catch (e) {
-      console.log('No se pudo verificar ingreso')
+      console.log('Error verificando ingreso')
     }
   }
 
@@ -71,18 +70,15 @@ export default function Confirmar({ searchParams }) {
       const data = await res.json()
       setResultado({ ...data, empleado: empleadoVinculado })
       
-      // Actualizar estado DESPUÉS de marcar
       if (data.accion === 'entrada') {
         setYaIngreso(true)
-        // Auto-volver a pantalla principal después de 3 segundos
+        // Auto-cerrar después de 3 segundos en entrada
         setTimeout(() => {
           setResultado(null)
           setNoAlmorzo(false)
-          setComidaConfirmada(false)
         }, 3000)
       } else if (data.accion === 'salida') {
         setYaIngreso(false)
-        // NO volver automáticamente: esperar que confirme comida si corresponde
       }
     } catch (e) {
       setResultado({ error: 'Error de conexión' })
@@ -101,22 +97,18 @@ export default function Confirmar({ searchParams }) {
       const data = await res.json()
       setResultado(prev => ({
         ...prev,
-        comida_marcada: data.success,
+        comida_marcada: true,
         mensaje_comida: data.mensaje
       }))
-      setComidaConfirmada(true)
-      setNoAlmorzo(false)
     } catch (e) {
-      console.log('Error al marcar comida')
+      console.log('Error marcando comida')
     }
   }
 
   async function confirmarSalida() {
     if (noAlmorzo) {
-      // Marcar comida
       await marcarComida()
     } else {
-      // Solo cierra sin marcar comida
       setResultado(null)
       setNoAlmorzo(false)
       verificarIngreso(empleadoVinculado.id)
@@ -155,14 +147,7 @@ export default function Confirmar({ searchParams }) {
     }
   }
 
-  function volverAlMenu() {
-    setResultado(null)
-    setNoAlmorzo(false)
-    setComidaConfirmada(false)
-    verificarIngreso(empleadoVinculado.id)
-  }
-
-  // ----- PANTALLA: resultado de marcar -----
+  // ----- PANTALLA: resultado -----
   if (resultado) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
@@ -180,61 +165,41 @@ export default function Confirmar({ searchParams }) {
           <p className="text-xl font-bold text-gray-800 mb-2">
             {resultado.empleado ? `${resultado.empleado.nombre} ${resultado.empleado.apellido}` : ''}
           </p>
-          <p className="text-lg font-medium text-gray-600 mb-6">
-            {resultado.accion === 'entrada' && `Entrada registrada a las ${resultado.hora} ✓`}
+          <p className="text-lg font-medium text-gray-700 mb-6">
+            {resultado.accion === 'entrada' && `Entrada registrada a las ${resultado.hora}`}
             {resultado.accion === 'salida' && `Salida registrada a las ${resultado.hora} — ${resultado.horas_trabajadas}h trabajadas`}
             {resultado.accion === 'ya_registrado' && resultado.mensaje}
             {resultado.error && resultado.error}
           </p>
 
-          {/* COMIDA: SOLO EN SALIDA, ANTES DE CONFIRMAR */}
-          {resultado.accion === 'salida' && !comidaConfirmada && (
+          {/* CHECKBOX + BOTÓN: Solo en salida y antes de confirmar comida */}
+          {resultado.accion === 'salida' && !resultado.comida_marcada && (
             <>
-              <div className="bg-white rounded-lg p-4 mb-4">
+              <div className="bg-white rounded-lg p-4 mb-4 text-left">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={noAlmorzo}
                     onChange={(e) => setNoAlmorzo(e.target.checked)}
-                    className="w-5 h-5 rounded"
+                    className="w-5 h-5"
                   />
-                  <span className="text-sm font-medium text-gray-700">No almorcé (sumar 0.5h)</span>
+                  <span className="text-sm font-medium text-gray-700">No almorcé (+0.5h)</span>
                 </label>
               </div>
 
               <button
                 onClick={confirmarSalida}
                 disabled={procesando}
-                className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-base hover:bg-blue-700 disabled:bg-gray-300 transition"
+                className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
               >
-                {procesando ? 'Procesando...' : '✓ Confirmar salida'}
+                {procesando ? 'Procesando...' : 'Confirmar'}
               </button>
             </>
           )}
 
-          {/* COMIDA CONFIRMADA */}
-          {comidaConfirmada && (
-            <>
-              <p className="text-lg font-bold text-orange-600 mb-4">
-                🍴 {resultado.mensaje_comida || 'Almuerzo registrado'}
-              </p>
-              <button
-                onClick={volverAlMenu}
-                className="w-full py-3 rounded-xl bg-gray-600 text-white font-bold hover:bg-gray-700"
-              >
-                ← Volver al menú
-              </button>
-            </>
-          )}
-
-          {/* SIN COMIDA */}
-          {resultado.accion === 'salida' && !resultado.comida_marcada && comidaConfirmada === false && !noAlmorzo && (
-            <button
-              onClick={volverAlMenu}
-              className="w-full py-3 rounded-xl bg-gray-600 text-white font-bold hover:bg-gray-700"
-            >
-              ← Volver al menú
-            </button>
+          {/* Después de marcar comida */}
+          {resultado.comida_marcada && (
+            <p className="text-green-600 font-bold mb-4">✓ {resultado.mensaje_comida}</p>
           )}
         </div>
       </div>
@@ -255,21 +220,20 @@ export default function Confirmar({ searchParams }) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="max-w-sm w-full text-center">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl mx-auto mb-4">
+          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl mx-auto mb-6">
             {empleadoVinculado?.nombre?.[0]}{empleadoVinculado?.apellido?.[0]}
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">
-            Hola, {empleadoVinculado?.nombre}
+          <h1 className="text-3xl font-bold text-black mb-8">
+            {empleadoVinculado?.nombre}
           </h1>
-          <p className="text-sm text-gray-500 mb-8">Escanea el QR para registrar tu marca</p>
 
-          <div className="text-5xl mb-4">
-            {yaIngreso ? '🚪' : '📍'}
-          </div>
-
-          <p className="text-sm text-gray-600 font-medium mb-6">
-            {yaIngreso ? 'Listo para marcar salida' : 'Listo para marcar ingreso'}
-          </p>
+          <button
+            onClick={marcar}
+            disabled={procesando}
+            className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
+          >
+            {procesando ? 'Registrando...' : yaIngreso ? 'Marcar salida' : 'Marcar ingreso'}
+          </button>
         </div>
       </div>
     )
@@ -290,9 +254,9 @@ export default function Confirmar({ searchParams }) {
           onChange={e => setEmpleadoElegido(e.target.value)}
           className="w-full p-3 border rounded-xl mb-4 bg-white text-gray-800"
         >
-          <option value="" className="text-gray-800">Elegí tu nombre...</option>
+          <option value="">Elegí tu nombre...</option>
           {empleados.map(e => (
-            <option key={e.id} value={e.id} className="text-gray-800">{e.nombre} {e.apellido}</option>
+            <option key={e.id} value={e.id}>{e.nombre} {e.apellido}</option>
           ))}
         </select>
 
@@ -312,7 +276,7 @@ export default function Confirmar({ searchParams }) {
         <button
           onClick={vincular}
           disabled={procesando}
-          className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:bg-gray-300"
+          className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:bg-gray-400"
         >
           {procesando ? 'Vinculando...' : 'Vincular celular'}
         </button>
