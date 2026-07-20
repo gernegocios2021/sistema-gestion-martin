@@ -11,20 +11,20 @@ export default function Confirmar({ searchParams }) {
   const { token } = use(searchParams)
 
   const [deviceId, setDeviceId] = useState(null)
-  const [estado, setEstado] = useState('cargando')
+  const [estado, setEstado] = useState('cargando') // cargando | vinculado | sin_vincular
   const [empleadoVinculado, setEmpleadoVinculado] = useState(null)
   const [empleados, setEmpleados] = useState([])
   const [resultado, setResultado] = useState(null)
   const [procesando, setProcesando] = useState(false)
-  const [marcandoComida, setMarcandoComida] = useState(false)
-  const [resultadoComida, setResultadoComida] = useState(null)
   const [yaIngreso, setYaIngreso] = useState(false)
   const [noAlmorzo, setNoAlmorzo] = useState(false)
 
+  // Para el formulario de vinculación
   const [empleadoElegido, setEmpleadoElegido] = useState('')
   const [claveAdmin, setClaveAdmin] = useState('')
   const [errorVinc, setErrorVinc] = useState(null)
 
+  // 1. Al abrir: obtener (o crear) el device_id y consultar si está vinculado
   useEffect(() => {
     let id = localStorage.getItem('device_id')
     if (!id) {
@@ -52,6 +52,7 @@ export default function Confirmar({ searchParams }) {
       .catch(() => setEstado('sin_vincular'))
   }, [])
 
+  // 2. Consultar si ya tiene entrada sin salida hoy
   async function verificarIngreso(empleadoId) {
     try {
       const res = await fetch(`/api/check-ingreso?empleado_id=${empleadoId}`)
@@ -62,71 +63,45 @@ export default function Confirmar({ searchParams }) {
     }
   }
 
+  // 3. Marcar entrada/salida (y comida si corresponde)
   async function marcar() {
-  setProcesando(true)
-  try {
-    // Si es salida, obtener un token nuevo
-    let tokenActual = token
-    if (yaIngreso) {
-      try {
-        const resToken = await fetch('/api/marcar')
-        const dataToken = await resToken.json()
-        tokenActual = dataToken.token
-      } catch (e) {
-        console.log('Error obteniendo token nuevo')
-      }
-    }
-
-    const res = await fetch('/api/marcar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ device_id: deviceId, token: tokenActual }),
-    })
-    const data = await res.json()
-    setResultado({ ...data, empleado: empleadoVinculado })
-    setResultadoComida(null)
-
-    // Si es salida y tiene marcado "No almorcé", marcar comida automáticamente
-    if (data.accion === 'salida' && noAlmorzo) {
-      setTimeout(() => marcarComida(), 500)
-    }
-
-    // Actualizar estado después de marcar
-    if (data.accion === 'entrada') {
-      setYaIngreso(true)
-      // Auto-cerrar después de 3 segundos
-      setTimeout(() => {
-        setResultado(null)
-        setNoAlmorzo(false)
-      }, 3000)
-    } else if (data.accion === 'salida') {
-      setYaIngreso(false)
-    }
-  } catch (e) {
-    setResultado({ error: 'Error de conexión' })
-  } finally {
-    setProcesando(false)
-  }
-}
-
-  async function marcarComida() {
-    setMarcandoComida(true)
+    setProcesando(true)
     try {
-      const res = await fetch('/api/marcar-comida', {
+      const res = await fetch('/api/marcar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ device_id: deviceId }),
+        body: JSON.stringify({ device_id: deviceId, token }),
       })
       const data = await res.json()
-      setResultadoComida(data)
-      setNoAlmorzo(false)
+
+      // Si marcó salida y tildó "No almorcé", sumamos la media hora
+      if (data.accion === 'salida' && noAlmorzo) {
+        try {
+          const resComida = await fetch('/api/marcar-comida', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ device_id: deviceId }),
+          })
+          const dataComida = await resComida.json()
+          data.comida_ok = dataComida.success
+          data.horas_totales = dataComida.horas_totales
+        } catch (e) {
+          console.log('Error marcando comida')
+        }
+      }
+
+      setResultado({ ...data, empleado: empleadoVinculado })
+
+      if (data.accion === 'entrada') setYaIngreso(true)
+      if (data.accion === 'salida') setYaIngreso(false)
     } catch (e) {
-      setResultadoComida({ error: 'Error de conexión' })
+      setResultado({ error: 'Error de conexión' })
     } finally {
-      setMarcandoComida(false)
+      setProcesando(false)
     }
   }
 
+  // 4. Vincular este celular a un empleado
   async function vincular() {
     setErrorVinc(null)
     if (!empleadoElegido) { setErrorVinc('Elegí tu nombre'); return }
@@ -159,29 +134,7 @@ export default function Confirmar({ searchParams }) {
     }
   }
 
-  if (resultadoComida) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
-        <div className={`rounded-2xl p-8 text-center max-w-sm w-full ${
-          resultadoComida.success ? 'bg-orange-50 border-2 border-orange-400' :
-          'bg-red-50 border-2 border-red-400'
-        }`}>
-          <p className="text-6xl mb-4">
-            {resultadoComida.success ? '🍴' : '❌'}
-          </p>
-          <p className="text-lg font-bold text-gray-800 mb-2">
-            {resultadoComida.mensaje || resultadoComida.error}
-          </p>
-          {resultadoComida.horas_totales && (
-            <p className="text-sm text-gray-600">
-              Total del día: <strong>{resultadoComida.horas_totales}h</strong>
-            </p>
-          )}
-        </div>
-      </div>
-    )
-  }
-
+  // ----- PANTALLA: resultado de marcar -----
   if (resultado) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
@@ -196,35 +149,47 @@ export default function Confirmar({ searchParams }) {
              resultado.accion === 'salida' ? '👋' :
              resultado.error ? '❌' : '⚠️'}
           </p>
-          <p className="text-xl font-bold text-gray-800 mb-2">
+
+          <p className="text-xl font-bold text-gray-900 mb-2">
             {resultado.empleado ? `${resultado.empleado.nombre} ${resultado.empleado.apellido}` : ''}
           </p>
-          <p className="text-lg font-medium text-gray-600 mb-6">
-            {resultado.accion === 'entrada' && `Entrada registrada a las ${resultado.hora} ✓`}
-            {resultado.accion === 'salida' && `Salida registrada a las ${resultado.hora} — ${resultado.horas_trabajadas}h trabajadas`}
-            {resultado.accion === 'ya_registrado' && resultado.mensaje}
-            {resultado.error && resultado.error}
-          </p>
+
+          {resultado.accion === 'entrada' && (
+            <p className="text-lg font-medium text-gray-700">
+              Ingreso registrado a las {resultado.hora}
+            </p>
+          )}
 
           {resultado.accion === 'salida' && (
             <>
-              <button
-                onClick={marcarComida}
-                disabled={marcandoComida}
-                className="w-full py-4 rounded-xl bg-orange-500 text-white font-bold text-base hover:bg-orange-600 disabled:bg-gray-300 transition"
-              >
-                {marcandoComida ? 'Procesando...' : '🍴 No almorcé (+0.5h)'}
-              </button>
-              <p className="text-xs text-gray-500 mt-3">
-                Tocá solo si trabajaste en obra y no almorzaste
+              <p className="text-2xl font-bold text-gray-900 mb-2">
+                ¡Te esperamos mañana!
               </p>
+              <p className="text-base text-gray-700">
+                Salida registrada a las {resultado.hora} — {resultado.horas_trabajadas}h trabajadas
+              </p>
+              {resultado.comida_ok && (
+                <p className="text-sm font-medium text-orange-600 mt-3">
+                  🍴 Sin almuerzo: +0.5h
+                  {resultado.horas_totales ? ` (total ${resultado.horas_totales}h)` : ''}
+                </p>
+              )}
             </>
+          )}
+
+          {resultado.accion === 'ya_registrado' && (
+            <p className="text-lg font-medium text-gray-700">{resultado.mensaje}</p>
+          )}
+
+          {resultado.error && (
+            <p className="text-lg font-medium text-gray-700">{resultado.error}</p>
           )}
         </div>
       </div>
     )
   }
 
+  // ----- PANTALLA: cargando -----
   if (estado === 'cargando') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
@@ -233,51 +198,58 @@ export default function Confirmar({ searchParams }) {
     )
   }
 
+  // ----- PANTALLA: celular vinculado, listo para marcar -----
   if (estado === 'vinculado') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="max-w-sm w-full text-center">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl mx-auto mb-6">
+          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl mx-auto mb-4">
             {empleadoVinculado?.nombre?.[0]}{empleadoVinculado?.apellido?.[0]}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">
             Hola, {empleadoVinculado?.nombre}
           </h1>
-          <p className="text-sm text-gray-600 mb-8">
-            {yaIngreso ? 'Tocá el botón para registrar tu salida' : 'Tocá el botón para registrar tu ingreso'}
+
+          <p className="text-sm text-gray-600 mb-6">
+            {yaIngreso ? 'Registrá tu salida' : 'Registrá tu ingreso'}
           </p>
 
+          {/* CHECKBOX: solo aparece cuando va a marcar salida */}
           {yaIngreso && (
-            <div className="bg-white rounded-lg p-4 mb-6 text-left border border-gray-200">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={noAlmorzo}
-                  onChange={(e) => setNoAlmorzo(e.target.checked)}
-                  className="w-5 h-5"
-                />
-                <span className="text-sm font-medium text-gray-700">No almorcé (+0.5h)</span>
-              </label>
-            </div>
+            <label className="flex items-center gap-3 bg-white border-2 border-gray-300 rounded-xl p-4 mb-4 cursor-pointer text-left">
+              <input
+                type="checkbox"
+                checked={noAlmorzo}
+                onChange={e => setNoAlmorzo(e.target.checked)}
+                className="w-6 h-6 accent-orange-500"
+              />
+              <span className="text-sm font-medium text-gray-900">
+                No almorcé (+0.5h)
+              </span>
+            </label>
           )}
 
           <button
             onClick={marcar}
             disabled={procesando}
-            className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 disabled:bg-gray-300"
+            className={`w-full py-4 rounded-xl text-white font-bold text-lg disabled:bg-gray-300 ${
+              yaIngreso ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
-            {procesando ? 'Registrando...' : 'Marcar'}
+            {procesando ? 'Registrando...' : yaIngreso ? 'Marcar salida' : 'Marcar ingreso'}
           </button>
         </div>
       </div>
     )
   }
 
+  // ----- PANTALLA: celular sin vincular, alta inicial -----
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-sm w-full">
-        <h1 className="text-2xl font-bold text-gray-800 mb-1 text-center">Vincular este celular</h1>
-        <p className="text-sm text-gray-500 mb-6 text-center">
+        <h1 className="text-2xl font-bold text-gray-900 mb-1 text-center">Vincular este celular</h1>
+        <p className="text-sm text-gray-600 mb-6 text-center">
           Este teléfono todavía no está registrado. Elegí tu nombre y pedile al encargado que ingrese la clave.
         </p>
 
