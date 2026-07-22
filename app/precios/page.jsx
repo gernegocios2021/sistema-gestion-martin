@@ -17,6 +17,19 @@ const GRUPOS_PRIORITARIOS = [
   'Accesorios'
 ]
 
+// Un grupo pertenece a la solapa "Mamparas" si su nombre empieza con alguno de estos textos.
+// Para agregar o sacar algo de la solapa, editá solamente esta lista.
+const PREFIJOS_MAMPARAS = [
+  'Mampara',
+  'Kit',
+  'Cerramiento'
+]
+
+function esMampara(grupo) {
+  const g = (grupo || '').toLowerCase()
+  return PREFIJOS_MAMPARAS.some((pre) => g.startsWith(pre.toLowerCase()))
+}
+
 export default function Precios() {
   const [productos, setProductos] = useState([])
   const [porcentajes, setPorcentajes] = useState({})
@@ -24,6 +37,7 @@ export default function Precios() {
   const [mensaje, setMensaje] = useState('')
   const [aplicando, setAplicando] = useState(null)
   const [busqueda, setBusqueda] = useState('')
+  const [solapa, setSolapa] = useState('todos') // todos | mamparas | resto
 
   const [proveedores, setProveedores] = useState([])
   const [configProveedor, setConfigProveedor] = useState({}) // { Alukit: { cotizacion_dolar, margen_porcentaje } }
@@ -105,8 +119,19 @@ export default function Precios() {
     ? productos.filter((p) => p.nombre?.toLowerCase().includes(texto) || p.grupo?.toLowerCase().includes(texto))
     : productos
 
+  // Contadores para mostrar en las solapas
+  const totalMamparas = productosFiltrados.filter((p) => esMampara(p.grupo)).length
+  const totalResto = productosFiltrados.length - totalMamparas
+
+  // Filtro por solapa: se aplica después de la búsqueda
+  const productosVisibles = productosFiltrados.filter((p) => {
+    if (solapa === 'mamparas') return esMampara(p.grupo)
+    if (solapa === 'resto') return !esMampara(p.grupo)
+    return true
+  })
+
   const grupos = {}
-  productosFiltrados.forEach((p) => {
+  productosVisibles.forEach((p) => {
     const g = p.grupo || 'Sin grupo'
     if (!grupos[g]) grupos[g] = []
     grupos[g].push(p)
@@ -167,6 +192,34 @@ export default function Precios() {
   return (
     <div className="p-4 sm:p-8">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Lista de Precios</h1>
+
+      {/* SOLAPAS */}
+      <div className="flex gap-2 mb-6 border-b border-gray-700 pb-3 overflow-x-auto">
+        <button
+          onClick={() => setSolapa('todos')}
+          className={`px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
+            solapa === 'todos' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
+          }`}
+        >
+          Todos ({productosFiltrados.length})
+        </button>
+        <button
+          onClick={() => setSolapa('mamparas')}
+          className={`px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
+            solapa === 'mamparas' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
+          }`}
+        >
+          Mamparas ({totalMamparas})
+        </button>
+        <button
+          onClick={() => setSolapa('resto')}
+          className={`px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
+            solapa === 'resto' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
+          }`}
+        >
+          Resto ({totalResto})
+        </button>
+      </div>
 
       <div className="mb-6">
         <div className="relative max-w-md">
@@ -257,7 +310,7 @@ export default function Precios() {
       <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-8 border-l-4 border-red-400">
         <h2 className="text-lg font-semibold text-gray-700 mb-1">Aumento general</h2>
         <p className="text-xs text-gray-500 mb-3">
-          Aplica el porcentaje a TODOS los productos del catálogo, sin importar el grupo. Usalo para ajustes generales por inflación.
+          Aplica el porcentaje a TODOS los productos del catálogo, sin importar el grupo ni la solapa que estés viendo. Usalo para ajustes generales por inflación.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
           <div className="flex items-center gap-2">
@@ -349,9 +402,9 @@ export default function Precios() {
         </div>
       ))}
 
-      {productosFiltrados.length === 0 && (
+      {productosVisibles.length === 0 && (
         <p className="text-center text-gray-400 text-sm py-8">
-          {busqueda ? `No se encontraron productos para "${busqueda}"` : 'No hay productos cargados todavía.'}
+          {busqueda ? `No se encontraron productos para "${busqueda}"` : 'No hay productos en esta solapa.'}
         </p>
       )}
     </div>
