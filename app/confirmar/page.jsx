@@ -77,10 +77,10 @@ export default function Confirmar({ searchParams }) {
       // Si marcó salida y tildó "No almorcé", sumamos la media hora
       if (data.accion === 'salida' && noAlmorzo) {
         try {
-          const resComida = await fetch('/api/marcar-comida', {
+         const resComida = await fetch('/api/marcar-comida', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ device_id: deviceId }),
+            body: JSON.stringify({ device_id: deviceId, token }),
           })
           const dataComida = await resComida.json()
           data.comida_ok = dataComida.success

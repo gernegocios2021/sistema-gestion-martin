@@ -1,7 +1,9 @@
 import pool from '../../db'
 import { Resend } from 'resend'
+import jwt from 'jsonwebtoken'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+const SECRET = process.env.JWT_SECRET || 'sistema_martin_qr_2026'
 
 // Función para obtener fecha y hora en zona horaria de Argentina
 function fechaYHoraArgentina() {
@@ -21,10 +23,17 @@ function fechaYHoraArgentina() {
 
 export async function POST(request) {
   try {
-    const { device_id } = await request.json()
+    const { device_id, token } = await request.json()
 
     if (!device_id) {
       return Response.json({ error: 'device_id requerido' }, { status: 400 })
+    }
+
+    // Verificar que el token del QR sea válido (que esté presente en la fábrica)
+    try {
+      jwt.verify(token, SECRET)
+    } catch (e) {
+      return Response.json({ error: 'QR vencido, escaneá de nuevo' }, { status: 401 })
     }
 
     // Obtener el empleado vinculado
