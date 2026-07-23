@@ -165,27 +165,51 @@ export default function Compras() {
               {/* Selector de producto con buscador */}
               <div className="sm:col-span-2">
                 <label className="text-xs text-gray-500 mb-1 block">Producto</label>
-                <div className="relative mb-1.5">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
-                  <input
-                    type="text"
-                    placeholder="Buscar producto..."
-                    value={item.busquedaProducto}
-                    onChange={(e) => actualizarItem(index, 'busquedaProducto', e.target.value)}
-                    className="border rounded-lg pl-7 pr-3 py-1.5 text-xs text-gray-800 bg-white w-full"
-                  />
-                </div>
-                <select
-                  className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white w-full"
-                  value={item.esNuevo ? '__nuevo__' : item.producto_id}
-                  onChange={(e) => cambiarProducto(index, e.target.value)}
-                >
-                  <option value="">Elegí un producto... ({productosFiltradosPara(item).length})</option>
-                  {productosFiltradosPara(item).map(p => (
-                    <option key={p.id} value={p.id}>{p.nombre}</option>
-                  ))}
-                  <option value="__nuevo__">➕ Crear producto nuevo</option>
-                </select>
+
+                {item.esNuevo ? (
+                  // Modo "producto nuevo": no mostramos el listado, solo el aviso y la salida
+                  <div className="flex items-center justify-between gap-2 border-2 border-blue-400 rounded-lg px-3 py-2 bg-blue-50">
+                    <span className="text-sm font-medium text-blue-700">➕ Producto nuevo</span>
+                    <button
+                      onClick={() => cambiarProducto(index, '')}
+                      className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+                    >
+                      Elegir de la lista
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="relative mb-1.5">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
+                      <input
+                        type="text"
+                        placeholder="Buscar producto..."
+                        value={item.busquedaProducto}
+                        onChange={(e) => actualizarItem(index, 'busquedaProducto', e.target.value)}
+                        className="border rounded-lg pl-7 pr-3 py-1.5 text-xs text-gray-800 bg-white w-full"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <select
+                        className="border rounded-lg px-3 py-2 text-sm text-gray-800 bg-white flex-1 min-w-0"
+                        value={item.producto_id}
+                        onChange={(e) => cambiarProducto(index, e.target.value)}
+                      >
+                        <option value="">Elegí un producto... ({productosFiltradosPara(item).length})</option>
+                        {productosFiltradosPara(item).map(p => (
+                          <option key={p.id} value={p.id}>{p.nombre}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => cambiarProducto(index, '__nuevo__')}
+                        className="bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 whitespace-nowrap"
+                        title="Crear un producto que no está en la lista"
+                      >
+                        + Nuevo
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Cantidad</label>
