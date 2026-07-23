@@ -17,17 +17,10 @@ const GRUPOS_PRIORITARIOS = [
   'Accesorios'
 ]
 
-// Un grupo pertenece a la solapa "Mamparas" si su nombre empieza con alguno de estos textos.
-// Para agregar o sacar algo de la solapa, editá solamente esta lista.
-const PREFIJOS_MAMPARAS = [
-  'Mampara',
-  'Kit',
-  'Cerramiento'
-]
-
-function esMampara(grupo) {
-  const g = (grupo || '').toLowerCase()
-  return PREFIJOS_MAMPARAS.some((pre) => g.startsWith(pre.toLowerCase()))
+// Un producto es de Aluglas si tiene proveedor cargado (hoy "Alukit", que es un
+// sistema de Aluglas). Los productos sin proveedor son la lista propia de Marjavi.
+function esDeProveedor(producto) {
+  return !!producto.proveedor
 }
 
 export default function Precios() {
@@ -37,7 +30,7 @@ export default function Precios() {
   const [mensaje, setMensaje] = useState('')
   const [aplicando, setAplicando] = useState(null)
   const [busqueda, setBusqueda] = useState('')
-  const [solapa, setSolapa] = useState('todos') // todos | mamparas | resto
+  const [solapa, setSolapa] = useState('todos') // todos | aluglas | propia
 
   const [proveedores, setProveedores] = useState([])
   const [configProveedor, setConfigProveedor] = useState({}) // { Alukit: { cotizacion_dolar, margen_porcentaje } }
@@ -120,13 +113,13 @@ export default function Precios() {
     : productos
 
   // Contadores para mostrar en las solapas
-  const totalMamparas = productosFiltrados.filter((p) => esMampara(p.grupo)).length
-  const totalResto = productosFiltrados.length - totalMamparas
+  const totalAluglas = productosFiltrados.filter(esDeProveedor).length
+  const totalPropia = productosFiltrados.length - totalAluglas
 
   // Filtro por solapa: se aplica después de la búsqueda
   const productosVisibles = productosFiltrados.filter((p) => {
-    if (solapa === 'mamparas') return esMampara(p.grupo)
-    if (solapa === 'resto') return !esMampara(p.grupo)
+    if (solapa === 'aluglas') return esDeProveedor(p)
+    if (solapa === 'propia') return !esDeProveedor(p)
     return true
   })
 
@@ -204,20 +197,20 @@ export default function Precios() {
           Todos ({productosFiltrados.length})
         </button>
         <button
-          onClick={() => setSolapa('mamparas')}
+          onClick={() => setSolapa('aluglas')}
           className={`px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-            solapa === 'mamparas' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
+            solapa === 'aluglas' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
           }`}
         >
-          Mamparas ({totalMamparas})
+          Aluglas ({totalAluglas})
         </button>
         <button
-          onClick={() => setSolapa('resto')}
+          onClick={() => setSolapa('propia')}
           className={`px-5 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
-            solapa === 'resto' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
+            solapa === 'propia' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
           }`}
         >
-          Resto ({totalResto})
+          Lista propia ({totalPropia})
         </button>
       </div>
 
