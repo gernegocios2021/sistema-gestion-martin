@@ -364,7 +364,7 @@ export default function Precios() {
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[480px] text-xs">
-              <thead className="bg-gray-100 text-gray-600">
+              <thead className="bg-gray-700 text-white">
                 <tr>
                   <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Producto</th>
                   <th className="text-left px-3 py-2 font-medium whitespace-nowrap">Sin colocación</th>
