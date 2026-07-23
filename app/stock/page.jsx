@@ -1,10 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 const UNIDADES = ['Unidad', 'Barra', 'Metro', 'Kilo', 'm²', 'Caja', 'Plancha']
 
-export default function Stock() {
+function StockContenido() {
+  const searchParams = useSearchParams()
+  const filtroBajo = searchParams.get('filtro') === 'bajo'
+
   const [productos, setProductos] = useState([])
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [editando, setEditando] = useState(null)
@@ -192,6 +196,9 @@ export default function Stock() {
   }
 
   const productosFiltrados = productos.filter((p) => {
+    // Si venimos del dashboard con ?filtro=bajo, mostrar solo los que están bajos
+    if (filtroBajo && Number(p.stock_actual) > Number(p.stock_minimo)) return false
+
     const texto = busqueda.trim().toLowerCase()
     if (!texto) return true
     return (
@@ -242,6 +249,13 @@ export default function Stock() {
       </div>
 
       {mensaje && <p className="mb-4 text-green-600 text-sm font-medium">{mensaje}</p>}
+
+      {filtroBajo && (
+        <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+          <span className="text-sm text-red-700 font-medium">⚠ Mostrando solo productos con stock bajo</span>
+          <a href="/stock" className="text-sm text-blue-600 hover:underline">Ver todos</a>
+        </div>
+      )}
 
       <p className="text-xs text-gray-500 mb-3">
         💡 Tip: para cargar el stock real, tocá directamente el número en la columna "Stock" de la tabla, escribí la cantidad y presioná Enter o el botón 💾.
@@ -474,7 +488,7 @@ export default function Stock() {
             {productosFiltrados.length === 0 && (
               <tr>
                 <td colSpan={10} className="px-3 py-8 text-center text-gray-400">
-                  {busqueda ? `No se encontraron productos para "${busqueda}"` : 'No hay productos cargados todavía.'}
+                  {busqueda ? `No se encontraron productos para "${busqueda}"` : filtroBajo ? 'No hay productos con stock bajo. ¡Todo en orden! ✓' : 'No hay productos cargados todavía.'}
                 </td>
               </tr>
             )}
@@ -485,5 +499,13 @@ export default function Stock() {
         <p className="text-xs text-gray-500 mt-2">{productosFiltrados.length} de {productos.length} productos</p>
       )}
     </div>
+  )
+}
+
+export default function Stock() {
+  return (
+    <Suspense fallback={<div className="p-8 text-gray-500">Cargando...</div>}>
+      <StockContenido />
+    </Suspense>
   )
 }
