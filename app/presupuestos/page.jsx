@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 const ESTADOS = ['enviado', 'aceptado', 'rechazado', 'vencido', 'convertido']
 
@@ -12,13 +13,16 @@ const colorEstado = {
   convertido: 'bg-blue-100 text-blue-600',
 }
 
-export default function Presupuestos() {
+function PresupuestosContenido() {
+  const searchParams = useSearchParams()
+  const estadoInicial = searchParams.get('estado') || ''
+
   const [presupuestos, setPresupuestos] = useState([])
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [cambiandoEstado, setCambiandoEstado] = useState(null)
   const [nuevo, setNuevo] = useState({ cliente: '', descripcion: '', monto: '', observaciones: '' })
   const [mensaje, setMensaje] = useState('')
-  const [filtroEstado, setFiltroEstado] = useState('')
+  const [filtroEstado, setFiltroEstado] = useState(estadoInicial)
 
   useEffect(() => {
     cargarPresupuestos()
@@ -97,6 +101,20 @@ export default function Presupuestos() {
         ))}
       </div>
 
+      {filtroEstado && (
+        <div className="mb-4 flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2">
+          <span className="text-sm text-yellow-800 font-medium capitalize">
+            Mostrando solo presupuestos en estado: {filtroEstado}
+          </span>
+          <button
+            onClick={() => setFiltroEstado('')}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Ver todos
+          </button>
+        </div>
+      )}
+
       {mensaje && <p className="mb-4 text-green-600 text-sm font-medium">{mensaje}</p>}
 
       {mostrarFormulario && (
@@ -161,12 +179,22 @@ export default function Presupuestos() {
             ))}
             {presupuestosFiltrados.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-400 text-sm">No hay presupuestos registrados</td>
+                <td colSpan={6} className="px-6 py-8 text-center text-gray-400 text-sm">
+                  {filtroEstado ? `No hay presupuestos en estado "${filtroEstado}"` : 'No hay presupuestos registrados'}
+                </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
     </div>
+  )
+}
+
+export default function Presupuestos() {
+  return (
+    <Suspense fallback={<div className="p-8 text-gray-500">Cargando...</div>}>
+      <PresupuestosContenido />
+    </Suspense>
   )
 }

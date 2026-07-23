@@ -28,8 +28,9 @@ export default function Home() {
           <TarjetaResumen titulo="Productos con stock bajo" valor={`${datos.stock_bajo}`} color="text-red-500" />
         </Link>
 
-        <TarjetaResumen titulo="Presupuestos pendientes" valor={`${datos.presupuestos_pendientes}`} color="text-yellow-500" />
-        <TarjetaResumen titulo="Empleados presentes hoy" valor={`${datos.empleados_presentes}`} color="text-green-600" />
+<Link href="/presupuestos?estado=enviado" className="block transition hover:scale-[1.02]">
+          <TarjetaResumen titulo="Presupuestos pendientes" valor={`${datos.presupuestos_pendientes}`} color="text-yellow-500" />
+        </Link>        <TarjetaResumen titulo="Empleados presentes hoy" valor={`${datos.empleados_presentes}`} color="text-green-600" />
       </div>
     </div>
   )
