@@ -107,7 +107,7 @@ function StockContenido() {
     if (res.ok) {
       const actualizado = await res.json()
       setProductos((prev) => prev.map((p) => (p.id === actualizado.id ? actualizado : p)))
-      setMensaje(`✓ Se agregaron ${cantidad} a ${reponiendo.nombre}`)
+      setMensaje(`✓ Ajuste aplicado: +${cantidad} a ${reponiendo.nombre}`)
       setReponiendo(null)
       setCantidadReponer('')
       setTimeout(() => setMensaje(''), 3000)
@@ -361,13 +361,15 @@ function StockContenido() {
 
       {reponiendo && (
         <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-2">Reponer stock — {reponiendo.nombre}</h2>
-          <p className="text-sm text-gray-500 mb-4">Stock actual: <strong>{reponiendo.stock_actual}</strong> {reponiendo.unidad}</p>
+          <h2 className="text-lg font-semibold text-gray-700 mb-2">Ajustar stock — {reponiendo.nombre}</h2>
+          <p className="text-sm text-gray-500 mb-1">Stock actual: <strong>{reponiendo.stock_actual}</strong> {reponiendo.unidad}</p>
+          <p className="text-xs text-gray-500 mb-4">⚠ Solo para correcciones (recuento, material que faltaba cargar). <strong>Si compraste mercadería, registrala en Compras</strong> para que quede el costo y la rentabilidad salga bien.</p>
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             <input
               className="border rounded-lg px-4 py-2 text-sm text-gray-800 bg-white w-full sm:w-48"
               type="number"
-              placeholder="Cantidad a agregar"
+              step="any"
+              placeholder="Cantidad a sumar"
               value={cantidadReponer}
               onChange={(e) => setCantidadReponer(e.target.value)}
             />
@@ -466,7 +468,7 @@ function StockContenido() {
                         onClick={() => { setReponiendo(p); setCantidadReponer(''); setEditando(null); setMostrarFormulario(false) }}
                         className="bg-blue-100 text-blue-600 font-medium px-2 py-0.5 rounded-full hover:bg-blue-200 whitespace-nowrap"
                       >
-                        + Reponer
+                        ⚙ Ajustar
                       </button>
                       <button
                         onClick={() => { setEditando(p); setReponiendo(null); setMostrarFormulario(false) }}
