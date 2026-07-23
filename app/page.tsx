@@ -30,8 +30,11 @@ export default function Home() {
 
 <Link href="/presupuestos?estado=enviado" className="block transition hover:scale-[1.02]">
           <TarjetaResumen titulo="Presupuestos pendientes" valor={`${datos.presupuestos_pendientes}`} color="text-yellow-500" />
-        </Link>        <TarjetaResumen titulo="Empleados presentes hoy" valor={`${datos.empleados_presentes}`} color="text-green-600" />
-      </div>
+</Link>
+
+        <Link href="/presentes" className="block transition hover:scale-[1.02]">
+          <TarjetaResumen titulo="Empleados presentes hoy" valor={`${datos.empleados_presentes}`} color="text-green-600" />
+        </Link>      </div>
     </div>
   )
 }
