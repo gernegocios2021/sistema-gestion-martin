@@ -29,9 +29,14 @@ export async function POST(request) {
       return Response.json({ error: 'Usuario o contraseña incorrectos' }, { status: 401 })
     }
 
-    // Crear la sesión: un token válido por 8 horas
+    // Crear la sesión: incluir negocio_id en el token
     const token = jwt.sign(
-      { id: u.id, usuario: u.usuario, nombre: u.nombre },
+      { 
+        id: u.id, 
+        usuario: u.usuario, 
+        nombre: u.nombre,
+        negocio_id: u.negocio_id  // ← NUEVO
+      },
       SECRET,
       { expiresIn: '8h' }
     )
