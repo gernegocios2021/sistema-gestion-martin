@@ -1,9 +1,17 @@
 import pool from '../../db'
 
 // GET: lista todas las compras con el resumen de sus productos
-export async function GET() {
+export async function GET(request) {
   try {
-    const compras = await pool.query('SELECT * FROM compras ORDER BY fecha DESC')
+    const negocioId = request.headers.get('x-negocio-id')
+    if (!negocioId) {
+      return Response.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
+    const compras = await pool.query(
+      'SELECT * FROM compras WHERE negocio_id = $1 ORDER BY fecha DESC',
+      [negocioId]
+    )
 
     // Para cada compra, traemos sus ítems con el nombre del producto
     const comprasConItems = await Promise.all(
@@ -28,6 +36,11 @@ export async function GET() {
 // POST: registra una compra completa
 export async function POST(request) {
   try {
+    const negocioId = request.headers.get('x-negocio-id')
+    if (!negocioId) {
+      return Response.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const { proveedor, tipo, observaciones, items } = await request.json()
 
     if (!items || items.length === 0) {
@@ -42,8 +55,8 @@ export async function POST(request) {
 
     // 1. Crear la compra
     const compra = await pool.query(
-      'INSERT INTO compras (proveedor, tipo, total, observaciones) VALUES ($1, $2, $3, $4) RETURNING *',
-      [proveedor || 'Sin proveedor', tipo || 'factura', total, observaciones || '']
+      'INSERT INTO compras (proveedor, tipo, total, observaciones, negocio_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [proveedor || 'Sin proveedor', tipo || 'factura', total, observaciones || '', negocioId]
     )
     const compraId = compra.rows[0].id
 
@@ -55,15 +68,15 @@ export async function POST(request) {
       if (!productoId && item.nuevo_producto) {
         const np = item.nuevo_producto
         const creado = await pool.query(
-          'INSERT INTO productos (nombre, unidad, stock_actual, stock_minimo, categoria) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-          [np.nombre, np.unidad || 'Unidad', 0, Number(np.stock_minimo) || 0, np.categoria || 'materia_prima']
+          'INSERT INTO productos (nombre, unidad, stock_actual, stock_minimo, categoria, negocio_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+          [np.nombre, np.unidad || 'Unidad', 0, Number(np.stock_minimo) || 0, np.categoria || 'materia_prima', negocioId]
         )
         productoId = creado.rows[0].id
       }
 
-      if (!productoId) continue // por seguridad, si no hay producto, salteamos
+      if (!productoId) continue
 
-      // Guardar el ítem de la compra (con su precio, para el historial)
+      // Guardar el ítem de la compra
       await pool.query(
         'INSERT INTO compra_items (compra_id, producto_id, cantidad, precio_unitario) VALUES ($1, $2, $3, $4)',
         [compraId, productoId, Number(item.cantidad) || 0, Number(item.precio_unitario) || 0]
@@ -71,8 +84,8 @@ export async function POST(request) {
 
       // Sumar la cantidad comprada al stock del producto
       await pool.query(
-        'UPDATE productos SET stock_actual = COALESCE(stock_actual, 0) + $1 WHERE id = $2',
-        [Number(item.cantidad) || 0, productoId]
+        'UPDATE productos SET stock_actual = COALESCE(stock_actual, 0) + $1 WHERE id = $2 AND negocio_id = $3',
+        [Number(item.cantidad) || 0, productoId, negocioId]
       )
     }
 
