@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import VentasTaller from '@/app/modules/ventas/taller/page-taller'
-import VentasBar from '@/app/modules/ventas/bar/page-bar'
-import VentasPanaderia from '@/app/modules/ventas/panaderia/page-panaderia'
+import VentasTaller from '@/app/modules/ventas/taller/page-taller.jsx'
+import VentasBar from '@/app/modules/ventas/bar/page-bar.jsx'
+import VentasPanaderia from '@/app/modules/ventas/panaderia/page-panaderia.jsx'
 
 export default function VentasRouter() {
   const router = useRouter()
