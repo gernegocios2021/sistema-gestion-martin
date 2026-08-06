@@ -1,3 +1,4 @@
+import pool from '../../../db' 
 import pool from '../../../db'
 import { jwtVerify } from 'jose'
 
@@ -19,12 +20,12 @@ export async function GET(request) {
     )
 
     if (result.rows.length === 0) {
-      return Response.json({ tipo_negocio: 'taller' }) // default
+      return Response.json({ tipo_negocio: 'taller' })
     }
 
     return Response.json({ tipo_negocio: result.rows[0].tipo_negocio })
   } catch (error) {
     console.error('Error:', error)
-    return Response.json({ tipo_negocio: 'taller' }) // default
+    return Response.json({ tipo_negocio: 'taller' })
   }
 }
