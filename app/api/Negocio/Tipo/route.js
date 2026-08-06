@@ -1,4 +1,3 @@
-import pool from '../../../db' 
 import pool from '../../../db'
 import { jwtVerify } from 'jose'
 
