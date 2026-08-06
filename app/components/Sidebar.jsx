@@ -2,22 +2,55 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
-// Páginas donde NO se muestra el menú lateral (pantallas limpias).
 const RUTAS_SIN_MENU = ['/marcar', '/confirmar', '/login', '/liquidacion/recibo']
 
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const [abierto, setAbierto] = useState(false)
+  const [tipoNegocio, setTipoNegocio] = useState(null)
+  const [nombreNegocio, setNombreNegocio] = useState('GestionPro')
 
-  // En pantallas de marcación y login no se dibuja el menú.
+  useEffect(() => {
+    const fetchNegocio = async () => {
+      try {
+        const res = await fetch('/api/negocio/tipo')
+        const data = await res.json()
+        setTipoNegocio(data.tipo_negocio)
+        
+        // Mostrar nombre según tipo
+        if (data.tipo_negocio === 'panaderia') {
+          setNombreNegocio('🥐 Panadería')
+        } else if (data.tipo_negocio === 'taller') {
+          setNombreNegocio('Taller')
+        } else {
+          setNombreNegocio('GestionPro')
+        }
+      } catch (error) {
+        console.error('Error fetching negocio:', error)
+      }
+    }
+    fetchNegocio()
+  }, [])
+
   if (RUTAS_SIN_MENU.includes(pathname)) {
     return null
   }
 
-  const links = [
+  // Links para PANADERÍA
+  const linksPanaderia = [
+    { href: '/', label: 'Dashboard' },
+    { href: '/ventas', label: 'Ventas' },
+    { href: '/stock', label: 'Stock' },
+    { href: '/empleados', label: 'Empleados' },
+    { href: '/rentabilidad', label: 'Rentabilidad' },
+    { href: '/marcar', label: '📷 Marcar asistencia' },
+  ]
+
+  // Links para TALLER (todos)
+  const linksTaller = [
     { href: '/', label: 'Dashboard' },
     { href: '/ventas', label: 'Ventas' },
     { href: '/stock', label: 'Stock' },
@@ -29,9 +62,12 @@ export default function Sidebar() {
     { href: '/lista-materiales', label: 'Materiales por obra' },
     { href: '/empleados', label: 'Empleados' },
     { href: '/liquidacion', label: 'Liquidación de Sueldos' },
-{ href: '/feriados', label: 'Feriados' },
-{ href: '/marcar', label: '📷 Marcar asistencia' },
+    { href: '/feriados', label: 'Feriados' },
+    { href: '/marcar', label: '📷 Marcar asistencia' },
   ]
+
+  // Seleccionar links según tipo
+  const links = tipoNegocio === 'panaderia' ? linksPanaderia : linksTaller
 
   async function cerrarSesion() {
     await fetch('/api/logout', { method: 'POST' })
@@ -41,12 +77,12 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Barra superior solo en celular: título + botón hamburguesa */}
+      {/* Barra superior solo en celular */}
       <div className="md:hidden flex items-center justify-between bg-gray-800 text-white px-4 py-3">
         <div className="flex items-center gap-2">
-  <img src="/logo-icon.png" alt="GestionPro" className="w-7 h-7 rounded-lg" />
-  <h2 className="text-lg font-bold">GestionPro</h2>
-</div>
+          <img src="/logo-icon.png" alt="GestionPro" className="w-7 h-7 rounded-lg" />
+          <h2 className="text-lg font-bold">{nombreNegocio}</h2>
+        </div>
         <button
           onClick={() => setAbierto(true)}
           className="text-2xl leading-none"
@@ -56,7 +92,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Fondo oscuro detrás del menú abierto (solo celular) */}
+      {/* Fondo oscuro */}
       {abierto && (
         <div
           className="md:hidden fixed inset-0 bg-black/50 z-40"
@@ -64,7 +100,7 @@ export default function Sidebar() {
         />
       )}
 
-      {/* El menú lateral. */}
+      {/* Menú lateral */}
       <aside
         className={`
           bg-gray-800 text-white p-6 w-56 min-h-screen
@@ -76,10 +112,9 @@ export default function Sidebar() {
       >
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-2">
-  <img src="/logo-icon.png" alt="GestionPro" className="w-7 h-7 rounded-lg" />
-  <h2 className="text-lg font-bold">GestionPro</h2>
-</div>
-          {/* Botón cerrar, solo en celular */}
+            <img src="/logo-icon.png" alt="GestionPro" className="w-7 h-7 rounded-lg" />
+            <h2 className="text-lg font-bold">{nombreNegocio}</h2>
+          </div>
           <button
             onClick={() => setAbierto(false)}
             className="md:hidden text-2xl leading-none"
@@ -106,7 +141,6 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        {/* Botón de cerrar sesión, al pie del menú */}
         <button
           onClick={cerrarSesion}
           className="mt-auto rounded-lg px-4 py-2 text-sm text-left text-gray-300 hover:bg-gray-700 transition-colors"
