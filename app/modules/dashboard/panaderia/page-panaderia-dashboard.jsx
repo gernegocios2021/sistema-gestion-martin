@@ -18,8 +18,7 @@ export default function DashboardPanaderia() {
 
   return (
     <div className="p-8 bg-gradient-to-br from-orange-50 to-yellow-50 min-h-screen">
-<h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">🥐 Panadería</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+<h1 className="text-3xl font-bold text-orange-900 dark:text-white mb-8">🥐 Panadería</h1>      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Ventas del día - BIG */}
         <div className="bg-white rounded-lg shadow-lg p-8 border-l-4 border-orange-600">
           <p className="text-sm text-gray-600 mb-2">Hoy vendiste</p>
