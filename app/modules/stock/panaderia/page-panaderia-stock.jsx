@@ -177,8 +177,9 @@ export default function StockPanaderia() {
         <table className="w-full min-w-[600px]">
           <thead className="bg-gray-800 text-white">
             <tr>
-              <th className="text-left px-6 py-3 text-sm">Producto</th>
-              <th className="text-left px-6 py-3 text-sm">Precio</th>
+              <th className="text-left px-6 py-3 text-sm">Producto</th><th className="text-left px-6 py-3 text-sm">Unidad</th>
+              <th className="text-left px-6 py-3 text-sm">Unidad</th>
+<th className="text-left px-6 py-3 text-sm">Precio</th>
               <th className="text-left px-6 py-3 text-sm">Stock</th>
             </tr>
           </thead>
@@ -186,6 +187,7 @@ export default function StockPanaderia() {
             {productos.map((p) => (
               <tr key={p.id} className="border-t hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm font-medium text-gray-800">{p.nombre}</td>
+                <td className="px-6 py-4 text-sm text-gray-500">{p.unidad}</td>
                 <td className="px-6 py-4 text-sm">
                   <input
                     type="number"
