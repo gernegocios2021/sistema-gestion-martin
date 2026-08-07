@@ -12,17 +12,19 @@ const EMOJIS = {
 function emojiDe(nombre) {
   return EMOJIS[nombre] || '🛒'
 }
+
 function formatearPrecio(valor) {
   const num = Number(valor) || 0
   const partes = num.toFixed(2).split('.')
   const entero = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   return `${entero},${partes[1]}`
 }
+
 export default function VentasPanaderia() {
   const [productos, setProductos] = useState([])
   const [carrito, setCarrito] = useState([])
   const [mensaje, setMensaje] = useState('')
-  const [modalProducto, setModalProducto] = useState(null) // producto abierto para elegir cantidad
+  const [modalProducto, setModalProducto] = useState(null)
   const [inputGramos, setInputGramos] = useState('')
   const [inputDocenas, setInputDocenas] = useState('')
 
@@ -74,7 +76,6 @@ export default function VentasPanaderia() {
   }
 
   function confirmarDocena(tipo) {
-    // tipo: 'unidad' | 'media' | 'docena'
     const precioUnit = parseFloat(modalProducto.precio_sin_colocacion)
     let cantidad = 1
     let detalle = '1 un'
@@ -117,7 +118,7 @@ export default function VentasPanaderia() {
     })
 
     if (res.ok) {
-      setMensaje(`✓ Venta de $${total.toLocaleString('es-AR')} registrada`)
+      setMensaje('✓ Venta de $' + formatearPrecio(total) + ' registrada')
       setCarrito([])
       setTimeout(() => setMensaje(''), 3000)
     }
@@ -125,7 +126,8 @@ export default function VentasPanaderia() {
 
   return (
     <div className="p-4 sm:p-8 bg-gradient-to-br from-orange-50 to-yellow-50 min-h-screen">
-<h1 className="text-3xl font-bold mb-2 inline-block px-3 py-1 rounded-lg" style={{ color: '#ffffff', backgroundColor: '#c2410c' }}>🥐 Panadería</h1>      <p className="text-sm text-orange-600 mb-6">POS rápido y simple</p>
+      <h1 className="text-3xl font-bold mb-2 inline-block px-3 py-1 rounded-lg" style={{ color: '#ffffff', backgroundColor: '#c2410c' }}>🥐 Panadería</h1>
+      <p className="text-sm text-orange-600 mb-6">POS rápido y simple</p>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         {productos.map((p) => (
@@ -137,14 +139,13 @@ export default function VentasPanaderia() {
             <span className="text-3xl mb-2">{emojiDe(p.nombre)}</span>
             <p className="text-sm font-bold text-gray-800 text-center">{p.nombre}</p>
             <p className="text-lg font-bold text-orange-600">
-              ${parseFloat(p.precio_sin_colocacion).toLocaleString('es-AR')}
+              ${formatearPrecio(p.precio_sin_colocacion)}
               {p.tipo_medida === 'peso' && ' /kg'}
             </p>
           </button>
         ))}
       </div>
 
-      {/* MODAL: elegir cantidad según tipo_medida */}
       {modalProducto && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
@@ -152,7 +153,7 @@ export default function VentasPanaderia() {
 
             {modalProducto.tipo_medida === 'peso' && (
               <>
-                <p className="text-xs text-gray-500 mb-2">Precio por kg: ${parseFloat(modalProducto.precio_sin_colocacion).toLocaleString('es-AR')}</p>
+                <p className="text-xs text-gray-500 mb-2">Precio por kg: ${formatearPrecio(modalProducto.precio_sin_colocacion)}</p>
                 <div className="flex gap-2 mb-3">
                   {[250, 500, 1000].map(g => (
                     <button
@@ -183,13 +184,13 @@ export default function VentasPanaderia() {
             {modalProducto.tipo_medida === 'docena' && (
               <div className="flex flex-col gap-2 mb-3">
                 <button onClick={() => confirmarDocena('unidad')} className="bg-orange-100 text-orange-700 rounded-lg py-3 text-sm font-medium hover:bg-orange-200">
-                  1 unidad — ${parseFloat(modalProducto.precio_sin_colocacion).toLocaleString('es-AR')}
+                  1 unidad — ${formatearPrecio(modalProducto.precio_sin_colocacion)}
                 </button>
                 <button onClick={() => confirmarDocena('media')} className="bg-orange-100 text-orange-700 rounded-lg py-3 text-sm font-medium hover:bg-orange-200">
-                  1/2 docena (6) — ${(parseFloat(modalProducto.precio_sin_colocacion) * 6).toLocaleString('es-AR')}
+                  1/2 docena (6) — ${formatearPrecio(parseFloat(modalProducto.precio_sin_colocacion) * 6)}
                 </button>
                 <button onClick={() => confirmarDocena('docena')} className="bg-orange-100 text-orange-700 rounded-lg py-3 text-sm font-medium hover:bg-orange-200">
-                  1 docena (12) — ${(parseFloat(modalProducto.precio_sin_colocacion) * 12).toLocaleString('es-AR')}
+                  1 docena (12) — ${formatearPrecio(parseFloat(modalProducto.precio_sin_colocacion) * 12)}
                 </button>
               </div>
             )}
@@ -222,7 +223,6 @@ export default function VentasPanaderia() {
         </div>
       )}
 
-      {/* CARRITO */}
       <div className="bg-white rounded-xl shadow-lg p-6 max-w-md mx-auto">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">🛒 Carrito</h2>
 
@@ -243,14 +243,14 @@ export default function VentasPanaderia() {
                   ✕
                 </button>
                 <p className="font-bold text-orange-600 min-w-16 text-right">
-                  ${item.precioTotal.toLocaleString('es-AR')}
+                  ${formatearPrecio(item.precioTotal)}
                 </p>
               </div>
             ))}
 
             <div className="border-t-2 pt-4 mt-4">
               <p className="text-3xl font-bold text-center text-orange-700 mb-4">
-                ${total.toLocaleString('es-AR')}
+                ${formatearPrecio(total)}
               </p>
               <button
                 onClick={cobrar}
