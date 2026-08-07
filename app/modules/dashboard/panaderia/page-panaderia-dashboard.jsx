@@ -27,20 +27,17 @@ export default function DashboardPanaderia() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-lg p-8 border-l-4 border-orange-600">
-          <p className="text-sm text-gray-600 mb-2">Hoy vendiste</p>
-          <p className="text-5xl font-bold text-orange-700">{ventasFormato}</p>
+<p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Hoy vendiste</p>          <p className="text-5xl font-bold text-orange-700">{ventasFormato}</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8 border-l-4 border-green-600">
-          <p className="text-sm text-gray-600 mb-2">Empleados presentes</p>
-          <p className="text-5xl font-bold text-green-700">{datos.empleados_presentes}</p>
+<p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Empleados presentes</p>          <p className="text-5xl font-bold text-green-700">{datos.empleados_presentes}</p>
         </div>
       </div>
 
       {/* Tabla productos vendidos hoy */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">📊 Vendido hoy por producto</h2>
-
+<h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">📊 Vendido hoy por producto</h2>
         {productosVendidos.length === 0 ? (
           <p className="text-gray-400 text-center py-8">Todavía no hay ventas registradas hoy</p>
         ) : (
