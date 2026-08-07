@@ -44,9 +44,10 @@ export default function Confirmar({ searchParams }) {
           setEmpleadoVinculado(data.empleado)
           verificarIngreso(data.empleado.id)
           setEstado('vinculado')
-        } else {
+   } else {
           setEstado('sin_vincular')
-fetch(`/api/empleados-publico?token=${token}`).then(r => r.json()).then(setEmpleados)
+          fetch(`/api/empleados-publico?token=${token}`).then(r => r.json()).then(setEmpleados)
+        }
       })
       .catch(() => setEstado('sin_vincular'))
   }, [])
