@@ -13,6 +13,7 @@ export default function Sidebar() {
   const [tipoNegocio, setTipoNegocio] = useState(null)
   const [rol, setRol] = useState(null)
   const [nombreNegocio, setNombreNegocio] = useState('GestionPro')
+  const [logoUrl, setLogoUrl] = useState('/logo-icon.png')
 
   useEffect(() => {
     const fetchNegocio = async () => {
@@ -22,11 +23,14 @@ export default function Sidebar() {
         setTipoNegocio(data.tipo_negocio)
         
         if (data.tipo_negocio === 'panaderia') {
-          setNombreNegocio('🥐 Panadería')
+          setNombreNegocio('Panadería')
+          setLogoUrl( logo-panaderia-H.jpeg)
         } else if (data.tipo_negocio === 'taller') {
           setNombreNegocio('Taller')
+          setLogoUrl('/logo-icon.png')
         } else {
           setNombreNegocio('GestionPro')
+          setLogoUrl('/logo-icon.png')
         }
       } catch (error) {
         console.error('Error fetching negocio:', error)
@@ -52,7 +56,6 @@ export default function Sidebar() {
     return null
   }
 
-  // Links para PANADERÍA - ADMIN (ve todo)
   const linksPanaderiaAdmin = [
     { href: '/', label: 'Dashboard' },
     { href: '/ventas', label: 'Ventas' },
@@ -62,13 +65,11 @@ export default function Sidebar() {
     { href: '/marcar', label: '📷 Marcar asistencia' },
   ]
 
-  // Links para PANADERÍA - EMPLEADO (solo ventas)
   const linksPanaderiaEmpleado = [
     { href: '/ventas', label: 'Ventas' },
     { href: '/marcar', label: '📷 Marcar asistencia' },
   ]
 
-  // Links para TALLER (todos, por ahora sin distinción de rol)
   const linksTaller = [
     { href: '/', label: 'Dashboard' },
     { href: '/ventas', label: 'Ventas' },
@@ -85,7 +86,6 @@ export default function Sidebar() {
     { href: '/marcar', label: '📷 Marcar asistencia' },
   ]
 
-  // Seleccionar links según tipo + rol
   let links = linksTaller
   if (tipoNegocio === 'panaderia') {
     links = rol === 'empleado' ? linksPanaderiaEmpleado : linksPanaderiaAdmin
@@ -101,7 +101,7 @@ export default function Sidebar() {
     <>
       <div className="md:hidden flex items-center justify-between bg-gray-800 text-white px-4 py-3">
         <div className="flex items-center gap-2">
-          <img src="/logo-icon.png" alt="GestionPro" className="w-7 h-7 rounded-lg" />
+          <img src={logoUrl} alt={nombreNegocio} className="w-8 h-8 rounded-full object-cover" />
           <h2 className="text-lg font-bold">{nombreNegocio}</h2>
         </div>
         <button
@@ -131,7 +131,7 @@ export default function Sidebar() {
       >
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-2">
-            <img src="/logo-icon.png" alt="GestionPro" className="w-7 h-7 rounded-lg" />
+            <img src={logoUrl} alt={nombreNegocio} className="w-8 h-8 rounded-full object-cover" />
             <h2 className="text-lg font-bold">{nombreNegocio}</h2>
           </div>
           <button
