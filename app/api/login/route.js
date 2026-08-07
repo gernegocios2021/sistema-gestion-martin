@@ -12,7 +12,6 @@ export async function POST(request) {
       return Response.json({ error: 'Faltan datos' }, { status: 400 })
     }
 
-    // Buscar el usuario en la base
     const r = await pool.query(
       'SELECT * FROM usuarios WHERE usuario = $1',
       [usuario.toLowerCase()]
@@ -23,25 +22,23 @@ export async function POST(request) {
 
     const u = r.rows[0]
 
-    // Comparar la contraseña ingresada con el hash guardado
     const passwordOk = await bcrypt.compare(password, u.password_hash)
     if (!passwordOk) {
       return Response.json({ error: 'Usuario o contraseña incorrectos' }, { status: 401 })
     }
 
-    // Crear la sesión: incluir negocio_id en el token
     const token = jwt.sign(
       { 
         id: u.id, 
         usuario: u.usuario, 
         nombre: u.nombre,
-        negocio_id: u.negocio_id  // ← NUEVO
+        negocio_id: u.negocio_id,
+        rol: u.rol || 'admin'
       },
       SECRET,
       { expiresIn: '8h' }
     )
 
-    // Guardar el token en una cookie (httpOnly = el navegador la maneja, el JS no la puede leer)
     const res = Response.json({ ok: true, nombre: u.nombre })
     res.headers.set(
       'Set-Cookie',
