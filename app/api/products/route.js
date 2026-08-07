@@ -27,15 +27,15 @@ export async function POST(request) {
       return Response.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const { nombre, unidad, stock_actual, stock_minimo, categoria, precio_sin_colocacion, precio_con_colocacion, grupo } = await request.json()
+    const { nombre, unidad, stock_actual, stock_minimo, categoria, precio_sin_colocacion, precio_con_colocacion, grupo, tipo_medida } = await request.json()
     const stockActualNum = Number(stock_actual) || 0
     const stockMinimoNum = Number(stock_minimo) || 0
     const precioSinColocacionNum = precio_sin_colocacion !== undefined && precio_sin_colocacion !== '' ? Number(precio_sin_colocacion) : null
     const precioConColocacionNum = precio_con_colocacion !== undefined && precio_con_colocacion !== '' ? Number(precio_con_colocacion) : null
 
     const resultado = await pool.query(
-      'INSERT INTO productos (nombre, unidad, stock_actual, stock_minimo, categoria, precio_sin_colocacion, precio_con_colocacion, grupo, negocio_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-      [nombre, unidad, stockActualNum, stockMinimoNum, categoria || 'materia_prima', precioSinColocacionNum, precioConColocacionNum, grupo || null, negocioId]
+      'INSERT INTO productos (nombre, unidad, stock_actual, stock_minimo, categoria, precio_sin_colocacion, precio_con_colocacion, grupo, negocio_id, tipo_medida) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+      [nombre, unidad, stockActualNum, stockMinimoNum, categoria || 'materia_prima', precioSinColocacionNum, precioConColocacionNum, grupo || null, negocioId, tipo_medida || 'unidad']
     )
     return Response.json(resultado.rows[0], { status: 201 })
   } catch (error) {
@@ -99,6 +99,14 @@ export async function PATCH(request) {
       const resultado = await pool.query(
         'UPDATE productos SET precio_sin_colocacion = $1, precio_con_colocacion = $2 WHERE id = $3 AND negocio_id = $4 RETURNING *',
         [Number(body.precio_sin_colocacion) || 0, Number(body.precio_con_colocacion) || 0, id, negocioId]
+      )
+      return Response.json(resultado.rows[0])
+    }
+    // Editar nombre/unidad/tipo_medida (edición rápida desde panadería)
+    if (body.set_nombre !== undefined) {
+      const resultado = await pool.query(
+        'UPDATE productos SET nombre = $1, unidad = $2, tipo_medida = $3 WHERE id = $4 AND negocio_id = $5 RETURNING *',
+        [body.set_nombre, body.set_unidad, body.set_tipo_medida, id, negocioId]
       )
       return Response.json(resultado.rows[0])
     }
