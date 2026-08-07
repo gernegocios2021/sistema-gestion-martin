@@ -94,6 +94,14 @@ export async function PATCH(request) {
       )
       return Response.json(resultado.rows[0])
     }
+    // Editar precio
+    if (body.precio_sin_colocacion !== undefined && body.nombre === undefined) {
+      const resultado = await pool.query(
+        'UPDATE productos SET precio_sin_colocacion = $1, precio_con_colocacion = $2 WHERE id = $3 AND negocio_id = $4 RETURNING *',
+        [Number(body.precio_sin_colocacion) || 0, Number(body.precio_con_colocacion) || 0, id, negocioId]
+      )
+      return Response.json(resultado.rows[0])
+    }
 
     // Update completo
     const { nombre, unidad, stock_actual, stock_minimo, categoria, precio_sin_colocacion, precio_con_colocacion, grupo } = body
