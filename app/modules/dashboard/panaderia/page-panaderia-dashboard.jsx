@@ -41,11 +41,10 @@ export default function DashboardPanaderia() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[500px]">
-              <thead className="bg-gray-800 text-white">
-                <tr>
-                  <th className="text-left px-4 py-3 text-sm">Producto</th>
-                  <th className="text-left px-4 py-3 text-sm">Cantidad vendida</th>
-                  <th className="text-left px-4 py-3 text-sm">Ingresos</th>
+<thead style={{ backgroundColor: '#1f2937', color: '#ffffff' }}>                <tr>
+                  <th className="text-left px-4 py-3 text-sm" style={{ color: '#ffffff' }}>Producto</th>
+<th className="text-left px-4 py-3 text-sm" style={{ color: '#ffffff' }}>Cantidad vendida</th>
+<th className="text-left px-4 py-3 text-sm" style={{ color: '#ffffff' }}>Ingresos</th>
                 </tr>
               </thead>
               <tbody>
