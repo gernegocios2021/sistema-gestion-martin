@@ -19,8 +19,9 @@ function fechaYHoraArgentina() {
   return { fecha, hora }
 }
 
-export async function GET() {
-  const token = jwt.sign({ ts: Date.now() }, SECRET, { expiresIn: '60s' })
+export async function GET(request) {
+  const negocioId = request.headers.get('x-negocio-id') || null
+  const token = jwt.sign({ ts: Date.now(), negocio_id: negocioId }, SECRET, { expiresIn: '60s' })
   return Response.json({ token })
 }
 
