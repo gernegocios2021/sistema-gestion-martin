@@ -24,7 +24,7 @@ export default function Sidebar() {
         
         if (data.tipo_negocio === 'panaderia') {
           setNombreNegocio('Panadería')
-          setLogoUrl( logo-panaderia-H.jpeg)
+          setLogoUrl('/logo-panaderia-H.jpeg')
         } else if (data.tipo_negocio === 'taller') {
           setNombreNegocio('Taller')
           setLogoUrl('/logo-icon.png')
