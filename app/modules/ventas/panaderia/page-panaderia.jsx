@@ -120,8 +120,7 @@ export default function VentasPanaderia() {
 
   return (
     <div className="p-4 sm:p-8 bg-gradient-to-br from-orange-50 to-yellow-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-orange-900 dark:text-white mb-2">🥐 Panadería</h1>
-      <p className="text-sm text-orange-600 mb-6">POS rápido y simple</p>
+<h1 className="text-3xl font-bold mb-2 inline-block px-3 py-1 rounded-lg" style={{ color: '#ffffff', backgroundColor: '#c2410c' }}>🥐 Panadería</h1>      <p className="text-sm text-orange-600 mb-6">POS rápido y simple</p>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         {productos.map((p) => (
