@@ -39,7 +39,7 @@ export default function VentasPanaderia() {
 
   function abrirProducto(producto) {
     if (producto.tipo_medida === 'unidad') {
-      agregarAlCarrito(producto, 1, producto.precio_sin_colocacion)
+      agregarAlCarrito(producto, 1, parseFloat(producto.precio_sin_colocacion))
     } else {
       setModalProducto(producto)
       setInputGramos('')
