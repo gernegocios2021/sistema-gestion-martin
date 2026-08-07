@@ -2,21 +2,24 @@
 
 import { useState, useEffect } from 'react'
 
+const EMOJIS = {
+  'Café Chico': '☕', 'Café Grande': '☕', 'Café c/Leche': '🥛',
+  'Medialunas x2': '🥐', 'Medialunas común': '🥐', 'Medialunas de hojaldre': '🥐',
+  'Pan de Miga': '🍞', 'Facturas Surtidas': '🥐', 'Tostadas': '🍞',
+  'Sándwich Simple': '🥪', 'Criollos común': '🥐', 'Criollos de hojaldre': '🥐'
+}
+
+function emojiDe(nombre) {
+  return EMOJIS[nombre] || '🛒'
+}
+
 export default function VentasPanaderia() {
   const [productos, setProductos] = useState([])
   const [carrito, setCarrito] = useState([])
   const [mensaje, setMensaje] = useState('')
-
-  const BOTONES = [
-    { nombre: 'Café Chico', precio: 80, emoji: '☕' },
-    { nombre: 'Café Grande', precio: 120, emoji: '☕' },
-    { nombre: 'Café c/Leche', precio: 100, emoji: '🥛' },
-    { nombre: 'Medialunas x2', precio: 150, emoji: '🥐' },
-    { nombre: 'Pan de Miga', precio: 200, emoji: '🍞' },
-    { nombre: 'Facturas Surtidas', precio: 250, emoji: '🥐' },
-    { nombre: 'Tostadas', precio: 90, emoji: '🍞' },
-    { nombre: 'Sándwich Simple', precio: 350, emoji: '🥪' },
-  ]
+  const [modalProducto, setModalProducto] = useState(null) // producto abierto para elegir cantidad
+  const [inputGramos, setInputGramos] = useState('')
+  const [inputDocenas, setInputDocenas] = useState('')
 
   useEffect(() => {
     cargarDatos()
@@ -27,32 +30,66 @@ export default function VentasPanaderia() {
     setProductos(await res.json())
   }
 
-  function agregarAlCarrito(producto) {
-    const existe = carrito.find(p => p.nombre === producto.nombre)
+  function abrirProducto(producto) {
+    if (producto.tipo_medida === 'unidad') {
+      agregarAlCarrito(producto, 1, producto.precio_sin_colocacion)
+    } else {
+      setModalProducto(producto)
+      setInputGramos('')
+      setInputDocenas('')
+    }
+  }
+
+  function agregarAlCarrito(producto, cantidad, precioTotal, detalle = '') {
+    const key = producto.nombre + detalle
+    const existe = carrito.find(p => p.key === key)
     if (existe) {
       setCarrito(carrito.map(p =>
-        p.nombre === producto.nombre ? { ...p, cantidad: p.cantidad + 1 } : p
+        p.key === key ? { ...p, cantidad: p.cantidad + cantidad, precioTotal: p.precioTotal + precioTotal } : p
       ))
     } else {
-      setCarrito([...carrito, { ...producto, cantidad: 1 }])
+      setCarrito([...carrito, {
+        key,
+        producto_id: producto.id,
+        nombre: producto.nombre,
+        detalle,
+        cantidad,
+        precioTotal
+      }])
     }
+    setModalProducto(null)
   }
 
-  function quitarDelCarrito(nombre) {
-    setCarrito(carrito.filter(p => p.nombre !== nombre))
+  function confirmarPeso() {
+    const gramos = parseFloat(inputGramos)
+    if (!gramos || gramos <= 0) return
+    const precioKg = parseFloat(modalProducto.precio_sin_colocacion)
+    const precioTotal = (precioKg * gramos) / 1000
+    agregarAlCarrito(modalProducto, gramos / 1000, precioTotal, `${gramos}g`)
   }
 
-  function cambiarCantidad(nombre, cantidad) {
-    if (cantidad <= 0) {
-      quitarDelCarrito(nombre)
-    } else {
-      setCarrito(carrito.map(p =>
-        p.nombre === nombre ? { ...p, cantidad } : p
-      ))
-    }
+  function confirmarDocena(tipo) {
+    // tipo: 'unidad' | 'media' | 'docena'
+    const precioUnit = parseFloat(modalProducto.precio_sin_colocacion)
+    let cantidad = 1
+    let detalle = '1 un'
+    if (tipo === 'media') { cantidad = 6; detalle = '1/2 doc' }
+    if (tipo === 'docena') { cantidad = 12; detalle = '1 doc' }
+    const precioTotal = precioUnit * cantidad
+    agregarAlCarrito(modalProducto, cantidad, precioTotal, detalle)
   }
 
-  const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0)
+  function confirmarPorcion() {
+    const porciones = parseInt(inputDocenas) || 1
+    const precioUnit = parseFloat(modalProducto.precio_sin_colocacion)
+    agregarAlCarrito(modalProducto, porciones, precioUnit * porciones, `${porciones} porc`)
+  }
+
+  function quitarDelCarrito(key) {
+    setCarrito(carrito.filter(p => p.key !== key))
+  }
+
+  const total = carrito.reduce((sum, item) => sum + item.precioTotal, 0)
 
   async function cobrar() {
     if (carrito.length === 0) {
@@ -65,9 +102,9 @@ export default function VentasPanaderia() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         items: carrito.map(c => ({
-          producto_id: c.producto_id || 1,
+          producto_id: c.producto_id,
           cantidad: c.cantidad,
-          precio_unitario: c.precio
+          precio_unitario: c.cantidad > 0 ? c.precioTotal / c.cantidad : c.precioTotal
         })),
         instalacion: 0,
         observaciones: 'Venta panadería'
@@ -75,7 +112,7 @@ export default function VentasPanaderia() {
     })
 
     if (res.ok) {
-      setMensaje(`✓ Venta de $${total} registrada`)
+      setMensaje(`✓ Venta de $${total.toLocaleString('es-AR')} registrada`)
       setCarrito([])
       setTimeout(() => setMensaje(''), 3000)
     }
@@ -83,23 +120,105 @@ export default function VentasPanaderia() {
 
   return (
     <div className="p-4 sm:p-8 bg-gradient-to-br from-orange-50 to-yellow-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-orange-800 mb-2">🥐 Panadería</h1>
+      <h1 className="text-3xl font-bold text-orange-900 dark:text-white mb-2">🥐 Panadería</h1>
       <p className="text-sm text-orange-600 mb-6">POS rápido y simple</p>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-        {BOTONES.map((btn, idx) => (
+        {productos.map((p) => (
           <button
-            key={idx}
-            onClick={() => agregarAlCarrito(btn)}
+            key={p.id}
+            onClick={() => abrirProducto(p)}
             className="bg-white border-2 border-orange-300 rounded-lg p-4 hover:bg-orange-100 hover:border-orange-500 transition flex flex-col items-center justify-center min-h-24 shadow-sm"
           >
-            <span className="text-3xl mb-2">{btn.emoji}</span>
-            <p className="text-sm font-bold text-gray-800 text-center">{btn.nombre}</p>
-            <p className="text-lg font-bold text-orange-600">${btn.precio}</p>
+            <span className="text-3xl mb-2">{emojiDe(p.nombre)}</span>
+            <p className="text-sm font-bold text-gray-800 text-center">{p.nombre}</p>
+            <p className="text-lg font-bold text-orange-600">
+              ${parseFloat(p.precio_sin_colocacion).toLocaleString('es-AR')}
+              {p.tipo_medida === 'peso' && ' /kg'}
+            </p>
           </button>
         ))}
       </div>
 
+      {/* MODAL: elegir cantidad según tipo_medida */}
+      {modalProducto && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">{modalProducto.nombre}</h3>
+
+            {modalProducto.tipo_medida === 'peso' && (
+              <>
+                <p className="text-xs text-gray-500 mb-2">Precio por kg: ${parseFloat(modalProducto.precio_sin_colocacion).toLocaleString('es-AR')}</p>
+                <div className="flex gap-2 mb-3">
+                  {[250, 500, 1000].map(g => (
+                    <button
+                      key={g}
+                      onClick={() => setInputGramos(String(g))}
+                      className="flex-1 bg-orange-100 text-orange-700 rounded-lg py-2 text-sm font-medium hover:bg-orange-200"
+                    >
+                      {g >= 1000 ? '1 kg' : `${g}g`}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  placeholder="Gramos (ej: 250)"
+                  value={inputGramos}
+                  onChange={(e) => setInputGramos(e.target.value)}
+                  className="border rounded-lg px-3 py-2 w-full mb-3 text-sm"
+                />
+                <button
+                  onClick={confirmarPeso}
+                  className="w-full bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-700"
+                >
+                  Agregar
+                </button>
+              </>
+            )}
+
+            {modalProducto.tipo_medida === 'docena' && (
+              <div className="flex flex-col gap-2 mb-3">
+                <button onClick={() => confirmarDocena('unidad')} className="bg-orange-100 text-orange-700 rounded-lg py-3 text-sm font-medium hover:bg-orange-200">
+                  1 unidad — ${parseFloat(modalProducto.precio_sin_colocacion).toLocaleString('es-AR')}
+                </button>
+                <button onClick={() => confirmarDocena('media')} className="bg-orange-100 text-orange-700 rounded-lg py-3 text-sm font-medium hover:bg-orange-200">
+                  1/2 docena (6) — ${(parseFloat(modalProducto.precio_sin_colocacion) * 6).toLocaleString('es-AR')}
+                </button>
+                <button onClick={() => confirmarDocena('docena')} className="bg-orange-100 text-orange-700 rounded-lg py-3 text-sm font-medium hover:bg-orange-200">
+                  1 docena (12) — ${(parseFloat(modalProducto.precio_sin_colocacion) * 12).toLocaleString('es-AR')}
+                </button>
+              </div>
+            )}
+
+            {modalProducto.tipo_medida === 'porcion' && (
+              <>
+                <input
+                  type="number"
+                  placeholder="Cantidad de porciones"
+                  value={inputDocenas}
+                  onChange={(e) => setInputDocenas(e.target.value)}
+                  className="border rounded-lg px-3 py-2 w-full mb-3 text-sm"
+                />
+                <button
+                  onClick={confirmarPorcion}
+                  className="w-full bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-700"
+                >
+                  Agregar
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={() => setModalProducto(null)}
+              className="w-full mt-2 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CARRITO */}
       <div className="bg-white rounded-xl shadow-lg p-6 max-w-md mx-auto">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">🛒 Carrito</h2>
 
@@ -107,29 +226,20 @@ export default function VentasPanaderia() {
           <p className="text-gray-400 text-center py-8">Sin productos</p>
         ) : (
           <>
-            {carrito.map((item, idx) => (
-              <div key={idx} className="flex justify-between items-center border-b py-3 mb-3">
+            {carrito.map((item) => (
+              <div key={item.key} className="flex justify-between items-center border-b py-3 mb-3">
                 <div className="flex-1">
                   <p className="font-semibold text-gray-800">{item.nombre}</p>
-                  <p className="text-xs text-gray-500">${item.precio} c/u</p>
+                  {item.detalle && <p className="text-xs text-gray-500">{item.detalle}</p>}
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => cambiarCantidad(item.nombre, item.cantidad - 1)}
-                    className="bg-red-100 text-red-600 w-6 h-6 rounded hover:bg-red-200"
-                  >
-                    −
-                  </button>
-                  <span className="w-6 text-center font-bold">{item.cantidad}</span>
-                  <button
-                    onClick={() => cambiarCantidad(item.nombre, item.cantidad + 1)}
-                    className="bg-green-100 text-green-600 w-6 h-6 rounded hover:bg-green-200"
-                  >
-                    +
-                  </button>
-                </div>
-                <p className="font-bold text-orange-600 ml-3 min-w-16 text-right">
-                  ${(item.precio * item.cantidad).toLocaleString('es-AR')}
+                <button
+                  onClick={() => quitarDelCarrito(item.key)}
+                  className="bg-red-100 text-red-600 w-6 h-6 rounded hover:bg-red-200 mr-3"
+                >
+                  ✕
+                </button>
+                <p className="font-bold text-orange-600 min-w-16 text-right">
+                  ${item.precioTotal.toLocaleString('es-AR')}
                 </p>
               </div>
             ))}
