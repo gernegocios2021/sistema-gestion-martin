@@ -20,7 +20,17 @@ function fechaYHoraArgentina() {
 }
 
 export async function GET(request) {
-  const negocioId = request.headers.get('x-negocio-id') || null
+  let negocioId = null
+  try {
+    const cookieSesion = request.cookies.get('sesion')?.value
+    if (cookieSesion) {
+      const payload = jwt.verify(cookieSesion, SECRET)
+      negocioId = payload.negocio_id
+    }
+  } catch (e) {
+    negocioId = null
+  }
+
   const token = jwt.sign({ ts: Date.now(), negocio_id: negocioId }, SECRET, { expiresIn: '60s' })
   return Response.json({ token })
 }
