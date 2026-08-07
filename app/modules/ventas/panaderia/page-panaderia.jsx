@@ -12,7 +12,12 @@ const EMOJIS = {
 function emojiDe(nombre) {
   return EMOJIS[nombre] || '🛒'
 }
-
+function formatearPrecio(valor) {
+  const num = Number(valor) || 0
+  const partes = num.toFixed(2).split('.')
+  const entero = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return `${entero},${partes[1]}`
+}
 export default function VentasPanaderia() {
   const [productos, setProductos] = useState([])
   const [carrito, setCarrito] = useState([])
