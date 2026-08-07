@@ -85,7 +85,14 @@ export async function PATCH(request) {
       )
       return Response.json(resultado.rows[0])
     }
-
+// Editar costo
+    if (body.set_costo !== undefined) {
+      const resultado = await pool.query(
+        'UPDATE productos SET costo = $1 WHERE id = $2 AND negocio_id = $3 RETURNING *',
+        [Number(body.set_costo) || 0, id, negocioId]
+      )
+      return Response.json(resultado.rows[0])
+    }
     // Editar stock mínimo
     if (body.set_stock_minimo !== undefined) {
       const resultado = await pool.query(

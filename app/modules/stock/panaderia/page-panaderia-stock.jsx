@@ -44,6 +44,21 @@ export default function StockPanaderia() {
       setTimeout(() => setMensaje(''), 2000)
     }
   }
+  async function actualizarCosto(id, nuevoCosto) {
+    const res = await fetch('/api/products', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id,
+        set_costo: parseFloat(nuevoCosto)
+      })
+    })
+    if (res.ok) {
+      cargarProductos()
+      setMensaje('✓ Costo actualizado')
+      setTimeout(() => setMensaje(''), 2000)
+    }
+  }
 
   async function actualizarStock(id, nuevoStock) {
     const res = await fetch('/api/products', {
@@ -300,6 +315,7 @@ export default function StockPanaderia() {
               <th className="text-left px-6 py-3 text-sm">Producto</th>
               <th className="text-left px-6 py-3 text-sm">Unidad</th>
               <th className="text-left px-6 py-3 text-sm">Precio</th>
+              <th className="text-left px-6 py-3 text-sm">Costo</th>
               <th className="text-left px-6 py-3 text-sm">Stock</th>
               <th className="text-left px-6 py-3 text-sm">Acciones</th>
             </tr>
@@ -309,6 +325,18 @@ export default function StockPanaderia() {
               <tr key={p.id} className="border-t hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm font-medium text-gray-800">{p.nombre}</td>
                 <td className="px-6 py-4 text-sm text-gray-500">{p.unidad}</td>
+                <td className="px-6 py-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-500">$</span>
+                    <input
+                      type="number"
+                      defaultValue={p.costo}
+                      onBlur={(e) => actualizarCosto(p.id, e.target.value)}
+                      className="border rounded px-2 py-1 w-24 text-sm"
+                      step="0.01"
+                    />
+                  </div>
+                </td>
                 <td className="px-6 py-4 text-sm">
                   <div className="flex items-center gap-1">
                     <span className="text-gray-500">$</span>
