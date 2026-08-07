@@ -10,6 +10,8 @@ const API_PUBLICAS = [
   "/api/marcar",
   "/api/marcar-comida",
   "/api/dispositivo/vincular",
+  "/api/empleados-publico",
+  "/api/vincular",
 ];
 
 export async function middleware(request) {
