@@ -11,6 +11,7 @@ export default function Sidebar() {
   const router = useRouter()
   const [abierto, setAbierto] = useState(false)
   const [tipoNegocio, setTipoNegocio] = useState(null)
+  const [rol, setRol] = useState(null)
   const [nombreNegocio, setNombreNegocio] = useState('GestionPro')
 
   useEffect(() => {
@@ -20,7 +21,6 @@ export default function Sidebar() {
         const data = await res.json()
         setTipoNegocio(data.tipo_negocio)
         
-        // Mostrar nombre según tipo
         if (data.tipo_negocio === 'panaderia') {
           setNombreNegocio('🥐 Panadería')
         } else if (data.tipo_negocio === 'taller') {
@@ -32,15 +32,28 @@ export default function Sidebar() {
         console.error('Error fetching negocio:', error)
       }
     }
+
+    const fetchRol = async () => {
+      try {
+        const res = await fetch('/api/negocio/rol')
+        const data = await res.json()
+        setRol(data.rol)
+      } catch (error) {
+        console.error('Error fetching rol:', error)
+        setRol('admin')
+      }
+    }
+
     fetchNegocio()
+    fetchRol()
   }, [])
 
   if (RUTAS_SIN_MENU.includes(pathname)) {
     return null
   }
 
-  // Links para PANADERÍA
-  const linksPanaderia = [
+  // Links para PANADERÍA - ADMIN (ve todo)
+  const linksPanaderiaAdmin = [
     { href: '/', label: 'Dashboard' },
     { href: '/ventas', label: 'Ventas' },
     { href: '/stock', label: 'Stock' },
@@ -49,7 +62,13 @@ export default function Sidebar() {
     { href: '/marcar', label: '📷 Marcar asistencia' },
   ]
 
-  // Links para TALLER (todos)
+  // Links para PANADERÍA - EMPLEADO (solo ventas)
+  const linksPanaderiaEmpleado = [
+    { href: '/ventas', label: 'Ventas' },
+    { href: '/marcar', label: '📷 Marcar asistencia' },
+  ]
+
+  // Links para TALLER (todos, por ahora sin distinción de rol)
   const linksTaller = [
     { href: '/', label: 'Dashboard' },
     { href: '/ventas', label: 'Ventas' },
@@ -66,8 +85,11 @@ export default function Sidebar() {
     { href: '/marcar', label: '📷 Marcar asistencia' },
   ]
 
-  // Seleccionar links según tipo
-  const links = tipoNegocio === 'panaderia' ? linksPanaderia : linksTaller
+  // Seleccionar links según tipo + rol
+  let links = linksTaller
+  if (tipoNegocio === 'panaderia') {
+    links = rol === 'empleado' ? linksPanaderiaEmpleado : linksPanaderiaAdmin
+  }
 
   async function cerrarSesion() {
     await fetch('/api/logout', { method: 'POST' })
@@ -77,7 +99,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Barra superior solo en celular */}
       <div className="md:hidden flex items-center justify-between bg-gray-800 text-white px-4 py-3">
         <div className="flex items-center gap-2">
           <img src="/logo-icon.png" alt="GestionPro" className="w-7 h-7 rounded-lg" />
@@ -92,7 +113,6 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Fondo oscuro */}
       {abierto && (
         <div
           className="md:hidden fixed inset-0 bg-black/50 z-40"
@@ -100,7 +120,6 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Menú lateral */}
       <aside
         className={`
           bg-gray-800 text-white p-6 w-56 min-h-screen
