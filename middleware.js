@@ -12,6 +12,8 @@ const API_PUBLICAS = [
   "/api/dispositivo/vincular",
   "/api/empleados-publico",
   "/api/vincular",
+  "/api/negocio-publico",
+  
 ];
 
 export async function middleware(request) {

@@ -13,6 +13,7 @@ export default function Confirmar({ searchParams }) {
   const [deviceId, setDeviceId] = useState(null)
   const [estado, setEstado] = useState('cargando') // cargando | vinculado | sin_vincular
   const [empleadoVinculado, setEmpleadoVinculado] = useState(null)
+  const [tipoNegocio, setTipoNegocio] = useState(null)
   const [empleados, setEmpleados] = useState([])
   const [resultado, setResultado] = useState(null)
   const [procesando, setProcesando] = useState(false)
@@ -42,9 +43,10 @@ export default function Confirmar({ searchParams }) {
       .then(data => {
         if (data.vinculado) {
           setEmpleadoVinculado(data.empleado)
+          setTipoNegocio(data.tipo_negocio)
           verificarIngreso(data.empleado.id)
           setEstado('vinculado')
-   } else {
+        } else {
           setEstado('sin_vincular')
           fetch(`/api/empleados-publico?token=${token}`).then(r => r.json()).then(setEmpleados)
         }
@@ -216,8 +218,8 @@ export default function Confirmar({ searchParams }) {
             {yaIngreso ? 'Registrá tu salida' : 'Registrá tu ingreso'}
           </p>
 
-          {/* CHECKBOX: solo aparece cuando va a marcar salida */}
-          {yaIngreso && (
+          {/* CHECKBOX: solo aparece cuando va a marcar salida, y solo para taller */}
+          {yaIngreso && tipoNegocio === 'taller' && (
             <label className="gp-card flex items-center gap-4 rounded-2xl p-5 mb-5 cursor-pointer text-left">
               <input
                 type="checkbox"

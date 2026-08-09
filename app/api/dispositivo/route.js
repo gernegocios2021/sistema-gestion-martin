@@ -1,6 +1,5 @@
 import pool from '../../db'
 
-// Recibe un device_id y responde si está vinculado y a qué empleado.
 export async function POST(request) {
   try {
     const { device_id } = await request.json()
@@ -9,9 +8,10 @@ export async function POST(request) {
     }
 
     const r = await pool.query(
-      `SELECT d.empleado_id, e.nombre, e.apellido
+      `SELECT d.empleado_id, e.nombre, e.apellido, n.tipo_negocio
        FROM dispositivos d
        JOIN empleados e ON e.id = d.empleado_id
+       JOIN negocio n ON n.id = e.negocio_id
        WHERE d.device_id = $1`,
       [device_id]
     )
@@ -24,6 +24,7 @@ export async function POST(request) {
     return Response.json({
       vinculado: true,
       empleado: { id: emp.empleado_id, nombre: emp.nombre, apellido: emp.apellido },
+      tipo_negocio: emp.tipo_negocio,
     })
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 })
