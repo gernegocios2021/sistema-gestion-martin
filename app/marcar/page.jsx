@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import QRCode from 'react-qr-code'
 
-const DURACION = 120  // segundos que dura el QR (debe coincidir con el token)
+const DURACION = 600  // segundos que dura el QR (debe coincidir con el token)
 
 export default function Marcar() {
   const [token, setToken] = useState(null)
