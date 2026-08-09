@@ -31,7 +31,7 @@ export async function GET(request) {
     negocioId = null
   }
 
-  const token = jwt.sign({ ts: Date.now(), negocio_id: negocioId }, SECRET, { expiresIn: '300s' })
+  const token = jwt.sign({ ts: Date.now(), negocio_id: negocioId }, SECRET, { expiresIn: '120s' })
   return Response.json({ token })
 }
 
