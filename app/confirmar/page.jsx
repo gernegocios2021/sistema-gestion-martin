@@ -48,8 +48,16 @@ export default function Confirmar({ searchParams }) {
           setEstado('vinculado')
         } else {
           setEstado('sin_vincular')
-          fetch(`/api/empleados-publico?token=${token}`).then(r => r.json()).then(setEmpleados)
-        }
+fetch(`/api/empleados-publico?token=${token}`)
+            .then(r => r.json())
+            .then(data => {
+              if (Array.isArray(data)) {
+                setEmpleados(data)
+              } else {
+                setErrorVinc('DEBUG: ' + JSON.stringify(data))
+              }
+            })
+            .catch(e => setErrorVinc('DEBUG catch: ' + e.message))        }
       })
       .catch(() => setEstado('sin_vincular'))
   }, [])
