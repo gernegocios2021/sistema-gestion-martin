@@ -1,30 +1,30 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, use } from 'react'
 
+// Genera un código único y aleatorio para identificar este celular
 function generarDeviceId() {
   return 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
 
-function ConfirmarContenido() {
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+export default function Confirmar({ searchParams }) {
+  const { token } = use(searchParams)
 
   const [deviceId, setDeviceId] = useState(null)
-  const [estado, setEstado] = useState('cargando')
+  const [estado, setEstado] = useState('cargando') // cargando | vinculado | sin_vincular
   const [empleadoVinculado, setEmpleadoVinculado] = useState(null)
-  const [tipoNegocio, setTipoNegocio] = useState(null)
   const [empleados, setEmpleados] = useState([])
   const [resultado, setResultado] = useState(null)
   const [procesando, setProcesando] = useState(false)
   const [yaIngreso, setYaIngreso] = useState(false)
   const [noAlmorzo, setNoAlmorzo] = useState(false)
 
+  // Para el formulario de vinculación
   const [empleadoElegido, setEmpleadoElegido] = useState('')
   const [claveAdmin, setClaveAdmin] = useState('')
   const [errorVinc, setErrorVinc] = useState(null)
 
+  // 1. Al abrir: obtener (o crear) el device_id y consultar si está vinculado
   useEffect(() => {
     let id = localStorage.getItem('device_id')
     if (!id) {
@@ -42,26 +42,17 @@ function ConfirmarContenido() {
       .then(data => {
         if (data.vinculado) {
           setEmpleadoVinculado(data.empleado)
-          setTipoNegocio(data.tipo_negocio)
           verificarIngreso(data.empleado.id)
           setEstado('vinculado')
-        } else {
+   } else {
           setEstado('sin_vincular')
-          fetch(`/api/empleados-publico?token=${token}`)
-            .then(r => r.json())
-            .then(data => {
-              if (Array.isArray(data)) {
-                setEmpleados(data)
-              } else {
-                setErrorVinc('DEBUG: ' + JSON.stringify(data))
-              }
-            })
-            .catch(e => setErrorVinc('DEBUG catch: ' + e.message))
+          fetch(`/api/empleados-publico?token=${token}`).then(r => r.json()).then(setEmpleados)
         }
       })
       .catch(() => setEstado('sin_vincular'))
   }, [])
 
+  // 2. Consultar si ya tiene entrada sin salida hoy
   async function verificarIngreso(empleadoId) {
     try {
       const res = await fetch(`/api/check-ingreso?empleado_id=${empleadoId}`)
@@ -72,6 +63,7 @@ function ConfirmarContenido() {
     }
   }
 
+  // 3. Marcar entrada/salida (y comida si corresponde)
   async function marcar() {
     setProcesando(true)
     try {
@@ -82,9 +74,10 @@ function ConfirmarContenido() {
       })
       const data = await res.json()
 
+      // Si marcó salida y tildó "No almorcé", sumamos la media hora
       if (data.accion === 'salida' && noAlmorzo) {
         try {
-          const resComida = await fetch('/api/marcar-comida', {
+         const resComida = await fetch('/api/marcar-comida', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ device_id: deviceId, token }),
@@ -108,6 +101,7 @@ function ConfirmarContenido() {
     }
   }
 
+  // 4. Vincular este celular a un empleado
   async function vincular() {
     setErrorVinc(null)
     if (!empleadoElegido) { setErrorVinc('Elegí tu nombre'); return }
@@ -140,6 +134,7 @@ function ConfirmarContenido() {
     }
   }
 
+  // ----- PANTALLA: resultado de marcar -----
   if (resultado) {
     return (
       <div className="gp-marcar min-h-screen flex items-center justify-center p-6">
@@ -195,6 +190,7 @@ function ConfirmarContenido() {
     )
   }
 
+  // ----- PANTALLA: cargando -----
   if (estado === 'cargando') {
     return (
       <div className="gp-marcar min-h-screen flex items-center justify-center p-8">
@@ -203,6 +199,7 @@ function ConfirmarContenido() {
     )
   }
 
+  // ----- PANTALLA: celular vinculado, listo para marcar -----
   if (estado === 'vinculado') {
     return (
       <div className="gp-marcar min-h-screen flex items-center justify-center p-6">
@@ -219,7 +216,8 @@ function ConfirmarContenido() {
             {yaIngreso ? 'Registrá tu salida' : 'Registrá tu ingreso'}
           </p>
 
-          {yaIngreso && tipoNegocio === 'taller' && (
+          {/* CHECKBOX: solo aparece cuando va a marcar salida */}
+          {yaIngreso && (
             <label className="gp-card flex items-center gap-4 rounded-2xl p-5 mb-5 cursor-pointer text-left">
               <input
                 type="checkbox"
@@ -246,6 +244,7 @@ function ConfirmarContenido() {
     )
   }
 
+  // ----- PANTALLA: celular sin vincular, alta inicial -----
   return (
     <div className="gp-marcar min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
@@ -288,13 +287,5 @@ function ConfirmarContenido() {
         </button>
       </div>
     </div>
-  )
-}
-
-export default function Confirmar() {
-  return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p>Cargando...</p></div>}>
-      <ConfirmarContenido />
-    </Suspense>
   )
 }
