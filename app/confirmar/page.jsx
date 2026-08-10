@@ -26,31 +26,62 @@ export default function Confirmar({ searchParams }) {
 
   // 1. Al abrir: obtener (o crear) el device_id y consultar si está vinculado
   useEffect(() => {
-    let id = localStorage.getItem('device_id')
-    if (!id) {
-      id = generarDeviceId()
-      localStorage.setItem('device_id', id)
-    }
-    setDeviceId(id)
+  let id = localStorage.getItem('device_id')
+  if (!id) {
+    id = generarDeviceId()
+    localStorage.setItem('device_id', id)
+  }
+  setDeviceId(id)
 
-    fetch('/api/dispositivo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ device_id: id }),
+  // 1. Consultar si el dispositivo está vinculado
+  fetch('/api/dispositivo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ device_id: id }),
+  })
+    .then(async (r) => {
+      if (!r.ok) throw new Error(`Error ${r.status}`)
+      return r.json()
     })
-      .then(r => r.json())
-      .then(data => {
-        if (data.vinculado) {
-          setEmpleadoVinculado(data.empleado)
-          verificarIngreso(data.empleado.id)
-          setEstado('vinculado')
-   } else {
-          setEstado('sin_vincular')
-          fetch(`/api/empleados-publico?token=${token}`).then(r => r.json()).then(setEmpleados)
-        }
-      })
-      .catch(() => setEstado('sin_vincular'))
-  }, [])
+    .then(data => {
+      if (data.vinculado) {
+        setEmpleadoVinculado(data.empleado)
+        verificarIngreso(data.empleado.id)
+        setEstado('vinculado')
+      } else {
+        // Dispositivo sin vincular: cargar empleados
+        setEstado('sin_vincular')
+        cargarEmpleados()
+      }
+    })
+    .catch((err) => {
+      console.error('[confirmar] Error en /api/dispositivo:', err.message)
+      setEstado('sin_vincular')
+      // Aún así intentamos cargar empleados
+      cargarEmpleados()
+    })
+}, [])
+
+// Función auxiliar para cargar empleados con manejo de errores visible
+async function cargarEmpleados() {
+  try {
+    console.log('[confirmar] Cargando empleados con token:', token ? token.slice(0, 20) + '...' : 'NINGUNO')
+    const res = await fetch(`/api/empleados-publico?token=${token}`)
+    
+    if (!res.ok) {
+      const errorData = await res.json()
+      throw new Error(`HTTP ${res.status}: ${errorData.error || 'Error desconocido'}`)
+    }
+    
+    const data = await res.json()
+    console.log('[confirmar] Empleados cargados:', data.length)
+    setEmpleados(data)
+  } catch (error) {
+    console.error('[confirmar] Error cargando empleados:', error.message)
+    // Mostrar error en pantalla
+    setErrorVinc(`Error cargando empleados: ${error.message}`)
+  }
+}
 
   // 2. Consultar si ya tiene entrada sin salida hoy
   async function verificarIngreso(empleadoId) {
